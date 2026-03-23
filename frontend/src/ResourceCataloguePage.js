@@ -106,7 +106,7 @@ function ResourceCataloguePage() {
 
       <nav className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/90 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
-          <img src={logoImage} alt="SpaceXplore logo" className="h-14 w-auto" />
+          <img src={logoImage} alt="SpaceXplore logo" className="h-20 w-auto sm:h-24" />
           <div className="flex items-center gap-3">
             <Link
               to="/"
@@ -243,6 +243,37 @@ function ResourceCataloguePage() {
           )}
         </section>
       </main>
+
+      <footer className="border-t border-slate-200 bg-white/95">
+        <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 lg:grid-cols-3 lg:px-8">
+          <div>
+            <img src={logoImage} alt="SpaceXplore logo" className="h-12 w-auto" />
+            <p className="mt-3 text-sm leading-relaxed text-slate-600">
+              Smart campus platform for managing facilities, assets, bookings, and maintenance workflows.
+            </p>
+          </div>
+
+          <div>
+            <p className="text-sm font-bold uppercase tracking-wide text-slate-800">Quick Links</p>
+            <div className="mt-3 flex flex-col gap-2 text-sm">
+              <Link to="/" className="text-slate-600 transition hover:text-[#3B82F6]">Home</Link>
+              <Link to="/resources" className="text-slate-600 transition hover:text-[#3B82F6]">Resources</Link>
+              <a href="/contact" className="text-slate-600 transition hover:text-[#3B82F6]">Contact</a>
+            </div>
+          </div>
+
+          <div>
+            <p className="text-sm font-bold uppercase tracking-wide text-slate-800">System Status</p>
+            <div className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+              All core services are operational.
+            </div>
+          </div>
+        </div>
+
+        <div className="border-t border-slate-200 px-4 py-4 text-center text-xs text-slate-500 sm:px-6 lg:px-8">
+          Copyright {new Date().getFullYear()} SpaceXplore. All rights reserved.
+        </div>
+      </footer>
     </div>
   );
 }
