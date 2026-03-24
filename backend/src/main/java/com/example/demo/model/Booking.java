@@ -1,0 +1,62 @@
+package com.example.demo.model;
+
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDate;
+import java.time.LocalTime;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Entity
+@Table(name = "bookings")
+public class Booking {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false)
+    private String resourceName;
+
+    @Column(nullable = false)
+    private LocalDate date;
+
+    @Column(nullable = false)
+    private LocalTime startTime;
+
+    @Column(nullable = false)
+    private LocalTime endTime;
+
+    @Column(nullable = false)
+    private String purpose;
+
+    @Column(nullable = false)
+    private Integer attendees;
+
+    @Column(nullable = false)
+    private Long requestedByUserId;
+
+    @Column(nullable = false)
+    private String requestedByEmail;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private BookingStatus status;
+
+    @Column
+    private String decisionReason;
+
+    @Column
+    private Long reviewedByAdminId;
+
+    @Column(nullable = false, updatable = false)
+    private Long createdAt;
+
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = System.currentTimeMillis();
+    }
+}

@@ -57,6 +57,14 @@ function Home() {
     navigate('/resources');
   };
 
+  const goToLogin = () => {
+    navigate('/login');
+  };
+
+  const goToRegister = () => {
+    navigate('/register');
+  };
+
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-[#1E293B]">
       <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[320px] bg-gradient-to-b from-blue-100/80 via-indigo-50/70 to-transparent" />
@@ -80,15 +88,31 @@ function Home() {
                 Resources
               </button>
             </li>
-            <li><a href="#bookings" className="transition-colors hover:text-[#3B82F6]">Bookings</a></li>
+            <li>
+              <button
+                type="button"
+                onClick={() => navigate('/bookings')}
+                className="transition-colors hover:text-[#3B82F6]"
+              >
+                Bookings
+              </button>
+            </li>
             <li><a href="#contact" className="transition-colors hover:text-[#3B82F6]">Contact</a></li>
           </ul>
 
           <div className="flex items-center gap-2 sm:gap-3">
-            <button className="rounded-lg border border-[#3B82F6] px-3 py-2 text-xs font-semibold text-[#3B82F6] transition hover:bg-blue-50 sm:px-4 sm:text-sm">
+            <button
+              type="button"
+              onClick={goToLogin}
+              className="rounded-lg border border-[#3B82F6] px-3 py-2 text-xs font-semibold text-[#3B82F6] transition hover:bg-blue-50 sm:px-4 sm:text-sm"
+            >
               Login
             </button>
-            <button className="rounded-lg bg-[#3B82F6] px-3 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-blue-600 sm:px-4 sm:text-sm">
+            <button
+              type="button"
+              onClick={goToRegister}
+              className="rounded-lg bg-[#3B82F6] px-3 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-blue-600 sm:px-4 sm:text-sm"
+            >
               Register
             </button>
           </div>
@@ -109,7 +133,11 @@ function Home() {
           </p>
 
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <button className="rounded-xl bg-[#3B82F6] px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-200 transition duration-200 hover:-translate-y-0.5 hover:bg-blue-600">
+            <button
+              type="button"
+              onClick={goToLogin}
+              className="rounded-xl bg-[#3B82F6] px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-200 transition duration-200 hover:-translate-y-0.5 hover:bg-blue-600"
+            >
               Get Started
             </button>
             <button
