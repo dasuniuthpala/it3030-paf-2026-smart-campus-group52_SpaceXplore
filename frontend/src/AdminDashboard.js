@@ -8,7 +8,8 @@ function AdminDashboard() {
   const [user, setUser] = useState(null);
   const [activeTab, setActiveTab] = useState('dashboard');
 
-  // Form state for adding a room
+  // Form state for adding/editing a room
+  const [editingRoomId, setEditingRoomId] = useState(null);
   const [roomForm, setRoomForm] = useState({
     resourceName: '',
     type: 'CLASSROOM',
@@ -57,12 +58,49 @@ function AdminDashboard() {
     setRoomForm(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleCreateRoom = async (e) => {
+  const handleEditClick = (res) => {
+    setEditingRoomId(res.id);
+    setRoomForm({
+       resourceName: res.resourceName,
+       type: res.type,
+       capacity: res.capacity,
+       location: res.location,
+       status: res.status,
+       availabilityWindow: res.availabilityWindow || '08:00 - 18:00',
+       imageUrl: res.imageUrl || 'https://images.unsplash.com/photo-1577414341908-1423403a45c3?q=80&w=600&auto=format&fit=crop'
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingRoomId(null);
+    setRoomForm({
+        resourceName: '', type: 'CLASSROOM', capacity: '', location: '', status: 'AVAILABLE', availabilityWindow: '08:00 - 18:00', imageUrl: 'https://images.unsplash.com/photo-1577414341908-1423403a45c3?q=80&w=600&auto=format&fit=crop'
+    });
+  };
+
+  const handleDeleteRoom = async (id) => {
+    if(!window.confirm('Are you sure you want to logically delete this resource? This cannot be undone.')) return;
+    try {
+        const response = await fetch(`http://localhost:8080/api/resources/${id}`, { method: 'DELETE' });
+        if (!response.ok) throw new Error('Failed to delete resource');
+        fetchResources();
+    } catch (err) {
+        alert(err.message);
+    }
+  };
+
+  const handleSaveRoom = async (e) => {
     e.preventDefault();
     setFormStatus({ loading: true, error: null, success: false });
+    
+    // If editingRoomId is set, we use PUT, else we use POST to create
+    const method = editingRoomId ? 'PUT' : 'POST';
+    const url = editingRoomId ? `http://localhost:8080/api/resources/${editingRoomId}` : 'http://localhost:8080/api/resources';
+
     try {
-      const response = await fetch('http://localhost:8080/api/resources', {
-        method: 'POST',
+      const response = await fetch(url, {
+        method: method,
         headers: {
           'Content-Type': 'application/json',
         },
@@ -72,15 +110,13 @@ function AdminDashboard() {
         }),
       });
 
-      if (!response.ok) throw new Error('Failed to create room');
+      if (!response.ok) throw new Error(`Failed to ${editingRoomId ? 'update' : 'create'} room`);
       
       setFormStatus({ loading: false, error: null, success: true });
       fetchResources();
       
-      // Reset form
-      setRoomForm({
-         resourceName: '', type: 'CLASSROOM', capacity: '', location: '', status: 'AVAILABLE', availabilityWindow: '08:00 - 18:00', imageUrl: roomForm.imageUrl
-      });
+      // Reset form smoothly
+      handleCancelEdit();
       setTimeout(() => setFormStatus(prev => ({ ...prev, success: false })), 3000);
     } catch (err) {
       setFormStatus({ loading: false, error: err.message, success: false });
@@ -98,7 +134,7 @@ function AdminDashboard() {
     <div className="flex h-screen w-full bg-[#f4f7fe] dark:bg-slate-950 font-sans text-slate-800 dark:text-slate-200">
       
       {/* ---------------- Admin Sidebar ---------------- */}
-      <aside className="w-64 shrink-0 bg-[#2b2b4f] dark:bg-slate-900 text-white flex flex-col transition-colors duration-300">
+      <aside className="w-64 shrink-0 bg-[#2b2b4f] dark:bg-slate-900 text-white flex flex-col transition-colors duration-300 border-r border-indigo-500/20">
         <div className="flex h-20 items-center justify-center border-b border-indigo-400/20 px-6 dark:border-white/10">
           <div className="flex items-center gap-3">
              <img src={logoImage} alt="Logo" className="w-8 h-8 object-contain filter invert opacity-90" />
@@ -107,6 +143,7 @@ function AdminDashboard() {
         </div>
 
         <div className="flex-1 px-4 py-8 overflow-y-auto">
+          <p className="text-[10px] uppercase font-bold text-slate-500 tracking-widest mb-4 px-4">Management Base</p>
           <ul className="space-y-2">
             {menuItems.map((item) => (
               <li key={item.id}>
@@ -126,7 +163,7 @@ function AdminDashboard() {
           </ul>
         </div>
 
-        <div className="p-4 mt-auto border-t border-indigo-400/20 dark:border-white/10">
+        <div className="p-4 mt-auto border-t border-indigo-400/20 dark:border-slate-700/50">
            <button 
              onClick={handleLogout}
              className="w-full flex items-center gap-4 px-4 py-3 text-indigo-200 hover:bg-white/10 hover:text-white rounded-xl transition-all"
@@ -145,7 +182,7 @@ function AdminDashboard() {
           <div>
             <h1 className="text-2xl font-black text-[#2b2b4f] dark:text-white tracking-tight">
               {activeTab === 'dashboard' && 'Admin Overview'}
-              {activeTab === 'rooms' && 'Room Directory'}
+              {activeTab === 'rooms' && 'Facilities & Assets'}
               {activeTab === 'maintenance' && 'Maintenance Hub'}
               {activeTab === 'users' && 'User Directory'}
             </h1>
@@ -154,7 +191,7 @@ function AdminDashboard() {
           <div className="flex items-center gap-6">
               <ThemeToggle />
 
-             <div className="flex items-center gap-3 ml-4 border-l border-slate-200 dark:border-slate-700 pl-6">
+             <div className="flex items-center gap-3 ml-4 border-l border-slate-200 dark:border-slate-700 pl-6 cursor-pointer">
                 <div className="hidden sm:block text-right">
                   <p className="text-sm font-bold text-[#2b2b4f] dark:text-white leading-none">System Admin</p>
                   <p className="text-[10px] font-bold text-indigo-500 mt-1 uppercase tracking-widest">Root Access</p>
@@ -175,7 +212,7 @@ function AdminDashboard() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                  <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-100 dark:border-slate-700">
                     <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Total Facilities</p>
-                    <h3 className="text-4xl font-black text-[#2b2b4f] dark:text-white mt-2">24</h3>
+                    <h3 className="text-4xl font-black text-[#2b2b4f] dark:text-white mt-2">{resources.length > 0 ? resources.length : '...'}</h3>
                  </div>
                  <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-100 dark:border-slate-700">
                     <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Active Bookings</p>
@@ -209,25 +246,32 @@ function AdminDashboard() {
             </div>
           )}
 
-          {/* TAB: ADD ROOMS (Manage Resources) */}
+          {/* TAB: ADD/EDIT ROOMS (Manage Resources) */}
           {activeTab === 'rooms' && (
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-              {/* Form specifically requested by user to ADD ROOMS */}
-              <div className="xl:col-span-1 border border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-[0_2px_10px_rgba(0,0,0,0.02)] h-fit">
-                 <h3 className="text-xl font-bold mb-4 text-indigo-500">Deploy New Room</h3>
+              {/* Add/Edit Form */}
+              <div className="xl:col-span-1 border border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-[0_2px_10px_rgba(0,0,0,0.02)] h-fit sticky top-6">
+                 <h3 className="text-xl font-bold mb-4 text-indigo-500 flex justify-between items-center">
+                    {editingRoomId ? 'Update Configuration' : 'Deploy New Asset'}
+                    {editingRoomId && (
+                        <button onClick={handleCancelEdit} className="text-xs font-bold tracking-widest uppercase text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 border border-slate-200 dark:border-slate-700 px-3 py-1 rounded-full">
+                           Cancel Edit
+                        </button>
+                    )}
+                 </h3>
                  
-                 {formStatus.success && <div className="mb-4 p-3 rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-200 text-sm font-bold">Room created successfully!</div>}
+                 {formStatus.success && <div className="mb-4 p-3 rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-200 text-sm font-bold">Resource {editingRoomId ? 'updated' : 'created'} successfully!</div>}
                  {formStatus.error && <div className="mb-4 p-3 rounded-lg bg-red-50 text-red-600 border border-red-200 text-sm font-bold">Error: {formStatus.error}</div>}
 
-                 <form onSubmit={handleCreateRoom} className="space-y-4">
+                 <form onSubmit={handleSaveRoom} className="space-y-4">
                    <div>
-                     <label className="block text-xs font-bold text-slate-500 mb-1">Room Name / ID</label>
+                     <label className="block text-xs font-bold text-slate-500 mb-1">Resource Name / ID</label>
                      <input required type="text" name="resourceName" value={roomForm.resourceName} onChange={handleRoomChange} placeholder="e.g. F1205" className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
                    </div>
                    <div className="grid grid-cols-2 gap-4">
                      <div>
                        <label className="block text-xs font-bold text-slate-500 mb-1">Type</label>
-                       <select name="type" value={roomForm.type} onChange={handleRoomChange} className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                       <select name="type" value={roomForm.type} onChange={handleRoomChange} className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800 dark:text-slate-200">
                           <option value="CLASSROOM">Classroom</option>
                           <option value="LAB">Laboratory</option>
                           <option value="LIBRARY_ROOM">Library Room</option>
@@ -243,8 +287,22 @@ function AdminDashboard() {
                      <label className="block text-xs font-bold text-slate-500 mb-1">Location / Building</label>
                      <input required type="text" name="location" value={roomForm.location} onChange={handleRoomChange} placeholder="e.g. Computing Faculty Level 4" className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
                    </div>
-                   <button disabled={formStatus.loading} type="submit" className="w-full mt-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-lg transition-colors shadow-md shadow-indigo-500/30">
-                     {formStatus.loading ? 'Deploying...' : '+ Add Resource'}
+                   <div className="grid grid-cols-2 gap-4">
+                     <div>
+                       <label className="block text-xs font-bold text-slate-500 mb-1">Status</label>
+                       <select name="status" value={roomForm.status} onChange={handleRoomChange} className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800 dark:text-slate-200">
+                          <option value="AVAILABLE">Available</option>
+                          <option value="MAINTENANCE">Maintenance</option>
+                       </select>
+                     </div>
+                     <div>
+                        <label className="block text-xs font-bold text-slate-500 mb-1">Available Hours</label>
+                        <input type="text" name="availabilityWindow" value={roomForm.availabilityWindow} onChange={handleRoomChange} className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800 dark:text-slate-200" />
+                     </div>
+                   </div>
+                   
+                   <button disabled={formStatus.loading} type="submit" className={`w-full mt-2 font-bold py-2.5 rounded-lg transition-colors shadow-md ${editingRoomId ? 'bg-amber-500 hover:bg-amber-600 text-white shadow-amber-500/30' : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-500/30'}`}>
+                     {formStatus.loading ? (editingRoomId ? 'Updating...' : 'Deploying...') : (editingRoomId ? 'Save Changes' : '+ Add Resource')}
                    </button>
                  </form>
               </div>
@@ -260,10 +318,11 @@ function AdminDashboard() {
                              <th className="font-bold py-3 px-4">Type</th>
                              <th className="font-bold py-3 px-4">Capacity</th>
                              <th className="font-bold py-3 px-4">Status</th>
+                             <th className="font-bold py-3 px-4 text-right">Actions</th>
                           </tr>
                        </thead>
                        <tbody className="divide-y divide-slate-100 dark:divide-slate-700/50">
-                          {resources.length === 0 && <tr><td colSpan="4" className="py-4 text-center text-slate-400">Loading resources...</td></tr>}
+                          {resources.length === 0 && <tr><td colSpan="5" className="py-8 text-center text-slate-400 font-bold tracking-widest uppercase">No assets found in database.</td></tr>}
                           {resources.map((res) => (
                              <tr key={res.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                                 <td className="py-3 pr-4 font-semibold text-[#2b2b4f] dark:text-slate-200">{res.resourceName}</td>
@@ -273,6 +332,14 @@ function AdminDashboard() {
                                    <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest ${res.status === 'AVAILABLE' ? 'bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400' : 'bg-amber-100 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400'}`}>
                                      {res.status}
                                    </span>
+                                </td>
+                                <td className="py-3 px-4 text-right space-x-3">
+                                   <button onClick={() => handleEditClick(res)} className="text-slate-400 hover:text-indigo-500 transition-colors" title="Edit Resource">
+                                     <svg className="w-5 h-5 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                                   </button>
+                                   <button onClick={() => handleDeleteRoom(res.id)} className="text-slate-400 hover:text-red-500 transition-colors" title="Delete Resource">
+                                     <svg className="w-5 h-5 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                   </button>
                                 </td>
                              </tr>
                           ))}
@@ -294,7 +361,6 @@ function AdminDashboard() {
                </div>
                
                <div className="grid gap-4">
-                  {/* Ticket 1 */}
                   <div className="border border-red-200 bg-red-50 dark:border-red-500/30 dark:bg-red-500/5 rounded-xl p-5 flex items-start gap-5">
                      <div className="bg-red-500 text-white p-2.5 rounded-lg shrink-0">
                         <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
@@ -308,24 +374,6 @@ function AdminDashboard() {
                         <div className="mt-4 flex gap-2">
                            <span className="px-2 py-1 bg-red-200 text-red-800 dark:bg-red-900/40 dark:text-red-300 rounded text-xs font-bold">Severity: High</span>
                            <span className="px-2 py-1 bg-slate-200 text-[#2b2b4f] dark:bg-slate-700 dark:text-slate-300 rounded text-xs font-bold">Tech Dispatched</span>
-                        </div>
-                     </div>
-                  </div>
-
-                  {/* Ticket 2 */}
-                  <div className="border border-amber-200 bg-amber-50 dark:border-amber-500/30 dark:bg-amber-500/5 rounded-xl p-5 flex items-start gap-5">
-                     <div className="bg-amber-500 text-white p-2.5 rounded-lg shrink-0">
-                        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-                     </div>
-                     <div className="flex-1">
-                        <div className="flex justify-between items-start">
-                           <h4 className="font-bold text-amber-700 dark:text-amber-400">Routine AC Cleaning for A405</h4>
-                           <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Created 1d ago</span>
-                        </div>
-                        <p className="text-sm mt-1 text-slate-600 dark:text-slate-300">Scheduled bi-monthly deep filter wash for room A405.</p>
-                        <div className="mt-4 flex gap-2">
-                           <span className="px-2 py-1 bg-amber-200 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 rounded text-xs font-bold">Severity: Low</span>
-                           <span className="px-2 py-1 bg-slate-200 text-[#2b2b4f] dark:bg-slate-700 dark:text-slate-300 rounded text-xs font-bold">Pending Quote</span>
                         </div>
                      </div>
                   </div>
