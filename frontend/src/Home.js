@@ -1,57 +1,49 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import libraryImage from './images/lab.png';
+import heroImage from './images/hero_smart_campus.png';
 import logoImage from './images/logo.png';
-
-const features = [
-  {
-    title: 'Easy Booking',
-    description: 'Reserve lecture halls, labs, and equipment with a fast and simple workflow.',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" className="h-6 w-6">
-        <rect x="3" y="4" width="18" height="17" rx="2" />
-        <path d="M8 2v4M16 2v4M3 10h18" />
-      </svg>
-    ),
-  },
-  {
-    title: 'Real-time Availability',
-    description: 'See live availability before you request a booking and avoid double allocations.',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" className="h-6 w-6">
-        <circle cx="12" cy="12" r="9" />
-        <path d="M12 7v5l3 2" />
-      </svg>
-    ),
-  },
-  {
-    title: 'Smart Notifications',
-    description: 'Receive booking and maintenance updates directly from the system notification panel.',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" className="h-6 w-6">
-        <path d="M18 8a6 6 0 10-12 0v4.2c0 .6-.2 1.1-.6 1.5L4 15h16l-1.4-1.3c-.4-.4-.6-.9-.6-1.5V8z" />
-        <path d="M10 18a2 2 0 004 0" />
-      </svg>
-    ),
-  },
-  {
-    title: 'Maintenance Reporting',
-    description: 'Create and track fault tickets with status updates and assignment visibility.',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" className="h-6 w-6">
-        <path d="M10 3h4l1 2h3a2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V7a2 2 0 012-2h3l1-2z" />
-        <path d="M9 12h6M12 9v6" />
-      </svg>
-    ),
-  },
-];
 
 function Home() {
   const navigate = useNavigate();
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [activeTab, setActiveTab] = useState(0);
 
+  const capabilities = [
+    {
+      id: 0,
+      title: 'Facility Booking',
+      desc: 'Reserve intelligent spaces, smart labs, and high-tech hardware with an unobstructed workflow.',
+      icon: (
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} className="w-5 h-5">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5m.75-9l3-3 2.148 2.148A12.061 12.061 0 0116.5 7.605" />
+        </svg>
+      )
+    },
+    {
+      id: 1,
+      title: 'Live Telemetry',
+      desc: 'Real-time sensors and schedules prevent collision blocks and ensure seamless operations globally.',
+      icon: (
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} className="w-5 h-5">
+           <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6a7.5 7.5 0 107.5 7.5h-7.5V6z" />
+           <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0013.5 3v7.5z" />
+        </svg>
+      )
+    },
+    {
+      id: 2,
+      title: 'Incident Nodes',
+      desc: 'Autonomous ticketing dispatches instant automated maintenance notifications for hardware faults.',
+      icon: (
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} className="w-5 h-5">
+           <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 3v1.5M4.5 8.25H3m18 0h-1.5M5.25 12h13.5m-13.5 3.75h13.5m-6.75 3.75h3" />
+        </svg>
+      )
+    }
+  ];
+
+  // Initialize Dark Mode automatically to true first based on user preference or local storage
   useEffect(() => {
-    // Check local storage or system preference on mount
     if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
       setIsDarkMode(true);
       document.documentElement.classList.add('dark');
@@ -74,197 +66,173 @@ function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 transition-colors duration-300 dark:bg-slate-950 dark:text-slate-100 font-sans selection:bg-indigo-500/30">
+    <div className="flex h-screen w-full overflow-hidden bg-slate-100 text-slate-800 transition-colors duration-500 dark:bg-black dark:text-slate-100 font-sans selection:bg-indigo-500/30">
       
-      {/* Decorative ambient background */}
-      <div className="pointer-events-none fixed inset-x-0 -top-20 -z-10 flex justify-center opacity-70">
-        <div className="absolute top-0 h-[600px] w-[600px] rounded-full bg-blue-300/30 blur-[120px] dark:bg-indigo-600/20" />
-        <div className="absolute -top-20 right-[10%] h-[500px] w-[500px] rounded-full bg-purple-300/30 blur-[100px] dark:bg-purple-600/20" />
-      </div>
+      {/* -------------------- Fixed Left Sidebar -------------------- */}
+      <aside className="relative z-40 flex w-20 md:w-80 shrink-0 flex-col border-r border-slate-200/50 bg-white/70 backdrop-blur-3xl transition-all duration-500 dark:border-white/5 dark:bg-slate-900/40">
+        
+        {/* Brand Header */}
+        <div className="flex h-[88px] shrink-0 items-center justify-center md:justify-start px-0 md:px-8 border-b border-slate-200/50 dark:border-white/5 bg-gradient-to-r from-transparent to-white/10 dark:to-white/5">
+          <img src={logoImage} alt="SpaceXplore logo" className="h-10 w-auto transition-transform hover:scale-110 dark:invert dark:opacity-90" />
+        </div>
 
-      <nav className="sticky top-0 z-50 border-b border-slate-200/60 bg-white/70 py-4 backdrop-blur-xl dark:border-slate-800/60 dark:bg-slate-900/70 transition-colors duration-300">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          <img
-            src={logoImage}
-            alt="SpaceXplore logo"
-            className="h-12 w-auto transition-all duration-300 hover:scale-105 dark:invert dark:drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]"
-          />
+        {/* Sidebar Navigation & Features */}
+        <div className="flex flex-1 flex-col overflow-y-auto overflow-x-hidden p-4 md:p-6 scrollbar-hide">
+          <h2 className="hidden md:block text-[10px] font-black uppercase tracking-widest text-indigo-500/80 dark:text-indigo-400 mb-6 px-2">Operational Nodes</h2>
+          
+          <div className="flex flex-col gap-4">
+            {capabilities.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => setActiveTab(item.id)}
+                className={`group relative flex flex-row items-center md:items-start gap-4 rounded-2xl p-3 md:p-4 text-left transition-all duration-500 overflow-hidden ${
+                  activeTab === item.id
+                    ? 'border-transparent shadow-[0_10px_30px_-10px_rgba(99,102,241,0.3)] bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-500/20 dark:to-purple-500/10'
+                    : 'border-transparent hover:bg-slate-50 dark:hover:bg-white/5'
+                }`}
+              >
+                {/* Visual Active Indicator overlay */}
+                {activeTab === item.id && (
+                  <div className="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-indigo-500 to-purple-500 dark:from-indigo-400 dark:to-purple-500"></div>
+                )}
+                
+                <div className={`mt-1 flex h-12 w-12 shrink-0 items-center justify-center rounded-xl transition-all duration-500 ${
+                  activeTab === item.id 
+                    ? 'bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-xl shadow-indigo-500/40' 
+                    : 'bg-white/50 text-slate-400 border border-slate-200 dark:bg-black/20 dark:border-white/10 dark:text-slate-500 group-hover:text-indigo-400'
+                }`}>
+                  {item.icon}
+                </div>
 
-          <ul className="hidden items-center gap-8 text-sm font-semibold md:flex">
-            <li><a href="#home" className="transition-colors hover:text-indigo-500 dark:hover:text-indigo-400">Home</a></li>
-            <li>
-              <button onClick={() => navigate('/resources')} className="transition-colors hover:text-indigo-500 dark:hover:text-indigo-400">
-                Resources
+                <div className="hidden md:block">
+                  <h4 className={`text-base font-bold transition-colors ${
+                    activeTab === item.id ? 'text-indigo-900 dark:text-indigo-300' : 'text-slate-600 dark:text-slate-300 group-hover:text-indigo-600 dark:group-hover:text-indigo-400'
+                  }`}>
+                    {item.title}
+                  </h4>
+                  <p className={`mt-1 text-xs leading-relaxed transition-opacity duration-300 ${activeTab === item.id ? 'text-indigo-900/60 dark:text-indigo-200/60 opacity-100' : 'text-slate-500 dark:text-slate-500 opacity-0 group-hover:opacity-100'}`}>
+                    {item.desc}
+                  </p>
+                </div>
               </button>
-            </li>
-            <li>
-              <button onClick={() => navigate('/bookings')} className="transition-colors hover:text-indigo-500 dark:hover:text-indigo-400">
-                Bookings
-              </button>
-            </li>
-            <li><a href="#contact" className="transition-colors hover:text-indigo-500 dark:hover:text-indigo-400">Contact</a></li>
-          </ul>
+            ))}
+          </div>
 
-          <div className="flex items-center gap-3">
+          {/* Quick Actions (Sidebar bottom) */}
+          <div className="mt-auto hidden md:flex flex-col gap-3 border-t border-slate-200/50 dark:border-white/5 pt-6 px-2">
+             <button onClick={() => navigate('/resources')} className="w-full rounded-xl bg-slate-900 py-3.5 text-xs font-bold text-white shadow-lg transition-all hover:scale-[1.02] hover:bg-indigo-600 dark:bg-white dark:text-slate-900 dark:hover:bg-indigo-400">Launch Catalogue</button>
+             <button onClick={() => navigate('/bookings')} className="w-full rounded-xl border-2 border-slate-200 bg-transparent py-3.5 text-xs font-bold text-slate-600 transition-all hover:border-indigo-500 hover:text-indigo-600 dark:border-white/10 dark:text-slate-300 dark:hover:border-indigo-400 dark:hover:text-indigo-400">View Active Bookings</button>
+          </div>
+        </div>
+      </aside>
+
+
+      {/* -------------------- Main Visual Content (Hero Right Side) -------------------- */}
+      <main className="relative flex flex-1 flex-col overflow-hidden">
+        
+        {/* Absolute Background Image Layer */}
+        <div className="absolute inset-0 z-0">
+           <img src={heroImage} alt="Futuristic Hub" className="h-full w-full object-cover transition-transform duration-[20s] ease-out scale-100 hover:scale-110" />
+           {/* Complex Gradient Overlays for readability and mood */}
+           <div className="absolute inset-0 bg-gradient-to-r from-slate-50/90 via-slate-50/50 to-transparent dark:from-black/90 dark:via-black/60 dark:to-black/30"></div>
+           <div className="absolute inset-0 bg-gradient-to-t from-slate-100/90 via-transparent to-transparent dark:from-black dark:via-transparent to-transparent"></div>
+        </div>
+        
+        {/* Top Navbar overlapping the Hero */}
+        <nav className="relative z-30 flex h-[88px] items-center justify-end px-8 border-b border-transparent dark:border-white/5 transition-colors">
+          <div className="flex items-center gap-4 rounded-full bg-white/40 border border-white/40 dark:bg-black/40 dark:border-white/10 backdrop-blur-xl px-2 py-2 pr-6">
+            
             {/* Theme Toggle Button */}
             <button
               onClick={toggleTheme}
-              className="group relative rounded-full p-2 text-slate-500 hover:bg-slate-200 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors"
+              className="group relative flex h-10 w-10 items-center justify-center rounded-full bg-white/60 dark:bg-white/10 text-slate-500 hover:bg-white dark:text-slate-300 dark:hover:text-white transition-all shadow-sm"
               aria-label="Toggle Dark Mode"
             >
               {isDarkMode ? (
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-amber-300 drop-shadow-[0_0_10px_rgba(252,211,77,0.8)]" viewBox="0 0 20 20" fill="currentColor">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-indigo-400 drop-shadow-[0_0_10px_rgba(129,140,248,0.8)]" viewBox="0 0 20 20" fill="currentColor">
                    <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clipRule="evenodd" />
                 </svg>
               ) : (
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-indigo-600" viewBox="0 0 20 20" fill="currentColor">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-indigo-600 shadow-sm" viewBox="0 0 20 20" fill="currentColor">
                   <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
                 </svg>
               )}
             </button>
 
-            <button
-              onClick={() => navigate('/login')}
-              className="rounded-xl border border-indigo-500/30 px-5 py-2 text-sm font-semibold text-indigo-600 transition-all hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-500/10"
-            >
-              Login
-            </button>
-            <button
-              onClick={() => navigate('/register')}
-              className="rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 px-5 py-2 text-sm font-semibold text-white shadow-[0_0_15px_rgba(99,102,241,0.4)] transition-all hover:-translate-y-0.5 hover:shadow-[0_0_25px_rgba(99,102,241,0.6)]"
-            >
-              Register
+            <div className="h-5 w-px bg-slate-300 dark:bg-slate-700 mx-2"></div>
+
+            <button onClick={() => navigate('/login')} className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 transition-colors hover:text-indigo-600 dark:hover:text-indigo-400">
+              Sign In
             </button>
           </div>
-        </div>
-      </nav>
+        </nav>
 
-      <header id="home" className="mx-auto grid max-w-7xl items-center gap-12 px-4 py-16 sm:px-6 md:py-24 lg:grid-cols-[1.2fr_1fr] lg:px-8">
-        <div className="relative z-10">
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-indigo-50 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-indigo-600 shadow-sm dark:border-indigo-500/30 dark:bg-indigo-500/10 dark:text-indigo-300 dark:shadow-[0_0_15px_rgba(99,102,241,0.15)]">
-            <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-indigo-400 opacity-75"></span>
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-indigo-500"></span>
-            </span>
-            Smart Campus Hub
-          </div>
-          <h1 className="text-5xl font-black leading-tight tracking-tight sm:text-6xl lg:text-7xl">
-            Explore & Book <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-purple-500 dark:from-indigo-400 dark:to-purple-400">
-              Campus Spaces
-            </span>
-          </h1>
-          <p className="mt-6 max-w-2xl text-lg leading-relaxed text-slate-600 dark:text-slate-300 sm:text-xl">
-            Manage rooms, labs, and equipment with one sleek platform. Track approvals, submit
-            maintenance incidents, and stay updated in real-time.
-          </p>
+        {/* Hero Content positioned over the image */}
+        <div className="relative z-10 flex flex-1 flex-col justify-center px-8 lg:px-16 xl:px-24">
+          <div className="max-w-3xl">
+             <div className="mb-6 inline-flex overflow-hidden rounded-full border border-indigo-200/50 bg-white/30 backdrop-blur-md p-1 shadow-2xl dark:border-indigo-500/30 dark:bg-black/30">
+               <span className="flex items-center gap-2 rounded-full bg-white px-3 py-1 text-[10px] font-black uppercase tracking-widest text-indigo-600 dark:bg-indigo-600 dark:text-white">
+                 <span className="relative flex h-1.5 w-1.5">
+                   <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-indigo-400 opacity-75 dark:bg-white"></span>
+                   <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-indigo-600 dark:bg-white"></span>
+                 </span>
+                 SpaceXplore Core
+               </span>
+               <span className="px-4 py-1 text-[10px] font-bold uppercase tracking-widest text-slate-700 dark:text-slate-300">Operations Hub</span>
+             </div>
 
-          <div className="mt-10 flex flex-col gap-4 sm:flex-row">
-            <button
-              onClick={() => navigate('/login')}
-              className="group flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 px-8 py-4 text-base font-bold text-white shadow-lg shadow-indigo-500/25 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-indigo-500/40"
-            >
-              Get Started Now
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 transition-transform group-hover:translate-x-1" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
-              </svg>
-            </button>
-            <button
-              onClick={() => navigate('/resources')}
-              className="rounded-2xl border-2 border-indigo-200 bg-white/50 px-8 py-4 text-center text-base font-bold text-indigo-700 backdrop-blur-sm transition-all duration-300 hover:border-indigo-500 hover:bg-white dark:border-slate-700 dark:bg-slate-800/50 dark:text-slate-200 dark:hover:border-indigo-400 dark:hover:bg-slate-800"
-            >
-              View Catalogue
-            </button>
-          </div>
-        </div>
+             <h1 className="text-6xl font-black leading-[1.05] tracking-tight text-slate-900 dark:text-white sm:text-7xl lg:text-[5.5rem]">
+               Command Your <br />
+               <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-500 dark:from-indigo-400 dark:via-purple-400 dark:to-indigo-300">
+                 Campus Grid.
+               </span>
+             </h1>
 
-        <div className="relative">
-          <div className="absolute -left-8 -top-8 h-40 w-40 rounded-full bg-blue-400/30 blur-3xl dark:bg-indigo-500/20" />
-          <div className="absolute -bottom-10 -right-8 h-48 w-48 rounded-full bg-violet-400/30 blur-3xl dark:bg-purple-600/20" />
+             <p className="mt-8 max-w-xl text-lg font-medium leading-relaxed text-slate-600 dark:text-slate-400 sm:text-xl">
+               Step into the future of facility management. We merge beautiful architectural orchestration with deep systems integrations to bring you a flawless workflow.
+             </p>
 
-          <div className="group relative overflow-hidden rounded-[2rem] border border-slate-200 bg-white/50 p-2 shadow-2xl backdrop-blur-xl dark:border-slate-700/50 dark:bg-slate-800/30 dark:shadow-[0_20px_40px_-5px_rgba(0,0,0,0.6)]">
-            <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500/10 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100 dark:from-indigo-500/20"></div>
-            <img
-              src={libraryImage}
-              alt="Modern university library"
-              className="h-[300px] w-full rounded-[1.5rem] object-cover sm:h-[400px] lg:h-[460px]"
-            />
-            <div className="absolute bottom-6 mx-auto inset-x-6 flex items-center gap-4 rounded-2xl border border-white/20 bg-black/40 p-4 backdrop-blur-md dark:bg-slate-900/60 transition duration-300 group-hover:bg-black/50">
-               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500 text-white shadow-[0_0_15px_rgba(16,185,129,0.5)]">
-                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+             <div className="mt-12 flex flex-col sm:flex-row gap-5">
+               <button
+                 onClick={() => navigate('/register')}
+                 className="group relative flex items-center justify-center gap-3 overflow-hidden rounded-2xl bg-slate-900 px-8 py-4.5 text-sm font-bold text-white transition-all hover:scale-105 hover:shadow-[0_0_40px_rgba(0,0,0,0.3)] dark:bg-white dark:text-black dark:hover:shadow-[0_0_40px_rgba(255,255,255,0.2)]"
+               >
+                 <span className="relative z-10">Deploy Now</span>
+                 <svg xmlns="http://www.w3.org/2000/svg" className="relative z-10 h-4 w-4 transition-transform group-hover:translate-x-1.5" viewBox="0 0 20 20" fill="currentColor">
+                   <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
                  </svg>
+                 <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-purple-600 opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
+                 <span className="relative z-10 absolute inset-0 flex items-center justify-center gap-3 opacity-0 transition-opacity duration-300 group-hover:opacity-100 text-white">
+                    Deploy Now
+                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 transition-transform translate-x-0 group-hover:translate-x-1.5" viewBox="0 0 20 20" fill="currentColor">
+                     <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
+                   </svg>
+                 </span>
+               </button>
+
+               {/* Quick Info card floating in hero */}
+               <div className="hidden lg:flex items-center gap-5 rounded-2xl border border-slate-200/50 bg-white/40 p-4 backdrop-blur-xl dark:border-white/10 dark:bg-slate-900/40 shadow-xl">
+                  <div className="flex -space-x-4">
+                     <div className="flex overflow-hidden rounded-full border-2 border-white dark:border-slate-800">
+                        <img className="inline-block h-10 w-10 rounded-full object-cover" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=64&q=80" alt="" />
+                     </div>
+                     <div className="flex overflow-hidden rounded-full border-2 border-white dark:border-slate-800">
+                        <img className="inline-block h-10 w-10 rounded-full object-cover" src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=64&q=80" alt="" />
+                     </div>
+                     <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-white bg-indigo-100 text-xs font-bold text-indigo-700 dark:border-slate-800 dark:bg-indigo-900 dark:text-indigo-300">
+                       +1k
+                     </div>
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-slate-800 dark:text-white">Active Users</p>
+                    <p className="text-[10px] text-slate-600 dark:text-slate-400">Booking spaces today</p>
+                  </div>
                </div>
-               <div>
-                  <p className="text-sm font-bold text-white">Space Available</p>
-                  <p className="text-xs text-slate-300">Smart Lab L3 - Books Instantly</p>
-               </div>
-            </div>
+             </div>
           </div>
         </div>
-      </header>
 
-      <section id="resources" className="relative z-10 mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
-        <div className="mb-16 text-center">
-          <h2 className="text-sm font-bold uppercase tracking-widest text-indigo-500 dark:text-indigo-400">Discover What's Inside</h2>
-          <h3 className="mt-3 text-4xl font-black tracking-tight sm:text-5xl">Feature-Rich Operations</h3>
-          <p className="mx-auto mt-4 max-w-2xl text-lg text-slate-600 dark:text-slate-400">Designed intimately for students, faculty staff, and comprehensive campus management teams.</p>
-        </div>
-
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {features.map((feature, idx) => (
-            <article
-              key={feature.title}
-              className="group relative overflow-hidden rounded-3xl border border-slate-200 bg-white/60 p-8 shadow-sm backdrop-blur-lg transition-all duration-300 hover:-translate-y-2 hover:shadow-xl dark:border-slate-700/50 dark:bg-slate-800/40 dark:hover:border-indigo-500/50 dark:hover:shadow-[0_20px_40px_-10px_rgba(99,102,241,0.15)]"
-            >
-              <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-gradient-to-br from-indigo-500/10 to-purple-500/10 blur-2xl transition-all duration-500 group-hover:scale-150 group-hover:opacity-100 dark:from-indigo-500/20"></div>
-              
-              <div className="relative z-10 mb-6 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600 ring-1 ring-inset ring-indigo-500/20 transition-colors duration-300 group-hover:bg-indigo-600 group-hover:text-white dark:bg-slate-800 dark:text-indigo-400 dark:ring-slate-700 dark:group-hover:bg-indigo-500">
-                {feature.icon}
-              </div>
-              <h4 className="relative z-10 text-xl font-bold dark:text-white transition-colors duration-300 group-hover:text-indigo-600 dark:group-hover:text-indigo-400">{feature.title}</h4>
-              <p className="relative z-10 mt-3 text-sm leading-relaxed text-slate-600 dark:text-slate-400">{feature.description}</p>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className="relative overflow-hidden bg-slate-900 py-24 text-white dark:bg-slate-950">
-        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-slate-700 to-transparent"></div>
-        <div className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-[600px] w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-indigo-600/20 blur-[120px]"></div>
-        
-        <div className="mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8">
-          <h3 className="text-4xl font-black tracking-tight sm:text-5xl lg:text-6xl">
-            Elevate your <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">Campus Experience</span>
-          </h3>
-          <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-slate-400">
-            SpaceXplore transforms confusing facility logistics into one modern, seamless platform. See it for yourself.
-          </p>
-          <div className="mt-10">
-            <button
-              onClick={() => navigate('/register')}
-              className="rounded-2xl bg-white px-8 py-4 text-lg font-bold text-slate-900 shadow-[0_0_20px_rgba(255,255,255,0.3)] transition-all hover:scale-105 hover:shadow-[0_0_30px_rgba(255,255,255,0.5)]"
-            >
-              Join the Hub Today
-            </button>
-          </div>
-        </div>
-      </section>
-
-      <footer id="contact" className="border-t border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 transition-colors duration-300">
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-6 px-4 py-8 text-sm text-slate-500 dark:text-slate-400 sm:px-6 md:flex-row lg:px-8">
-          <div className="flex items-center gap-3">
-             <img src={logoImage} alt="SpaceXplore logo" className="h-8 w-auto dark:invert opacity-80" />
-             <p className="font-bold text-slate-800 dark:text-slate-200">SpaceXplore Operations</p>
-          </div>
-          <div className="flex items-center gap-6">
-            <a href="/privacy" className="transition-colors hover:text-indigo-500 dark:hover:text-indigo-400">Privacy Policy</a>
-            <a href="/terms" className="transition-colors hover:text-indigo-500 dark:hover:text-indigo-400">Terms of Service</a>
-            <a href="/contact" className="transition-colors hover:text-indigo-500 dark:hover:text-indigo-400">Contact Support</a>
-          </div>
-          <p className="font-medium">© {new Date().getFullYear()} SpaceXplore. All rights reserved.</p>
-        </div>
-      </footer>
+      </main>
     </div>
   );
 }
