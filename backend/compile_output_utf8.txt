@@ -1,0 +1,678 @@
+﻿.\mvnw : WARNING: A 
+terminally deprecated 
+method in sun.misc.Unsafe 
+has been called
+At line:1 char:1
++ .\mvnw compile > 
+compile_output.txt 2>&1
++ ~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+    + CategoryInfo        
+      : NotSpecified: (W  
+  ARNING: A term...has    
+ been called:String) [    
+], RemoteException
+    + FullyQualifiedError 
+   Id : NativeCommandErr  
+  or
+ 
+WARNING: sun.misc.Unsafe::
+staticFieldBase has been 
+called by com.google.injec
+t.internal.aop.HiddenClass
+Definer (file:/C:/Users/Ha
+rindu/.m2/wrapper/dists/ap
+ache-maven-3.9.11/03d7e36a
+140982eea48e22c1dcac01d886
+2b2550b2939e09a0809bbc5182
+a5bc/lib/guice-5.1.0-class
+es.jar)
+WARNING: Please consider 
+reporting this to the 
+maintainers of class com.g
+oogle.inject.internal.aop.
+HiddenClassDefiner
+WARNING: sun.misc.Unsafe::
+staticFieldBase will be 
+removed in a future 
+release
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] --------------------------< com.example:demo >--------------------------
+[INFO] Building demo 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ demo ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] Copying 0 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ demo ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 22 source files with javac [debug parameters release 17] to target\classes
+[INFO] Some messages have been simplified; recompile with -Xdiags:verbose to get full output
+[INFO] -------------------------------------------------------------
+[ERROR] COMPILATION ERROR : 
+[INFO] -------------------------------------------------------------
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/config/DataSeeder.java:[19,34] constructor Resource in class com.example.demo.model.Resource cannot be applied to given types;
+  required: no arguments
+  found:    <nulltype>,java.lang.String,java.lang.String,int,java.lang.String,java.lang.String,java.lang.String,java.lang.String
+  reason: actual and formal argument lists differ in length
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/config/DataSeeder.java:[20,34] constructor Resource in class com.example.demo.model.Resource cannot be applied to given types;
+  required: no arguments
+  found:    <nulltype>,java.lang.String,java.lang.String,int,java.lang.String,java.lang.String,java.lang.String,java.lang.String
+  reason: actual and formal argument lists differ in length
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/config/DataSeeder.java:[21,33] constructor Resource in class com.example.demo.model.Resource cannot be applied to given types;
+  required: no arguments
+  found:    <nulltype>,java.lang.String,java.lang.String,int,java.lang.String,java.lang.String,java.lang.String,java.lang.String
+  reason: actual and formal argument lists differ in length
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/config/DataSeeder.java:[22,33] constructor Resource in class com.example.demo.model.Resource cannot be applied to given types;
+  required: no arguments
+  found:    <nulltype>,java.lang.String,java.lang.String,int,java.lang.String,java.lang.String,java.lang.String,java.lang.String
+  reason: actual and formal argument lists differ in length
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/config/DataSeeder.java:[25,33] constructor Resource in class com.example.demo.model.Resource cannot be applied to given types;
+  required: no arguments
+  found:    <nulltype>,java.lang.String,java.lang.String,int,java.lang.String,java.lang.String,java.lang.String,java.lang.String
+  reason: actual and formal argument lists differ in length
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/config/DataSeeder.java:[26,33] constructor Resource in class com.example.demo.model.Resource cannot be applied to given types;
+  required: no arguments
+  found:    <nulltype>,java.lang.String,java.lang.String,int,java.lang.String,java.lang.String,java.lang.String,java.lang.String
+  reason: actual and formal argument lists differ in length
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/config/DataSeeder.java:[29,33] constructor Resource in class com.example.demo.model.Resource cannot be applied to given types;
+  required: no arguments
+  found:    <nulltype>,java.lang.String,java.lang.String,int,java.lang.String,java.lang.String,java.lang.String,java.lang.String
+  reason: actual and formal argument lists differ in length
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/config/DataSeeder.java:[30,33] constructor Resource in class com.example.demo.model.Resource cannot be applied to given types;
+  required: no arguments
+  found:    <nulltype>,java.lang.String,java.lang.String,int,java.lang.String,java.lang.String,java.lang.String,java.lang.String
+  reason: actual and formal argument lists differ in length
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/config/DataSeeder.java:[33,33] constructor Resource in class com.example.demo.model.Resource cannot be applied to given types;
+  required: no arguments
+  found:    <nulltype>,java.lang.String,java.lang.String,int,java.lang.String,java.lang.String,java.lang.String,java.lang.String
+  reason: actual and formal argument lists differ in length
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/config/DataSeeder.java:[34,33] constructor Resource in class com.example.demo.model.Resource cannot be applied to given types;
+  required: no arguments
+  found:    <nulltype>,java.lang.String,java.lang.String,int,java.lang.String,java.lang.String,java.lang.String,java.lang.String
+  reason: actual and formal argument lists differ in length
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/AuthService.java:[19,64] cannot find symbol
+  symbol:   method getEmail()
+  location: variable request of type com.example.demo.dto.RegisterRequest
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/AuthService.java:[22,49] cannot find symbol
+  symbol:   method getEmail()
+  location: variable request of type com.example.demo.dto.RegisterRequest
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/AuthService.java:[28,34] cannot find symbol
+  symbol:   method getFirstName()
+  location: variable request of type com.example.demo.dto.RegisterRequest
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/AuthService.java:[29,33] cannot find symbol
+  symbol:   method getLastName()
+  location: variable request of type com.example.demo.dto.RegisterRequest
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/AuthService.java:[30,30] cannot find symbol
+  symbol:   method getEmail()
+  location: variable request of type com.example.demo.dto.RegisterRequest
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/AuthService.java:[31,46] cannot find symbol
+  symbol:   method getPassword()
+  location: variable request of type com.example.demo.dto.RegisterRequest
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/AuthService.java:[32,13] cannot find symbol
+  symbol:   method setRole(java.lang.String)
+  location: variable user of type com.example.demo.model.User
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/AuthService.java:[34,20] cannot find symbol
+  symbol:   method getEmail()
+  location: variable request of type com.example.demo.dto.RegisterRequest
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/AuthService.java:[35,17] cannot find symbol
+  symbol:   method setRole(java.lang.String)
+  location: variable user of type com.example.demo.model.User
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/AuthService.java:[39,75] cannot find symbol
+  symbol:   method getId()
+  location: variable savedUser of type com.example.demo.model.User
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/AuthService.java:[47,26] cannot find symbol
+  symbol:   method getRole()
+  location: variable savedUser of type com.example.demo.model.User
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/AuthService.java:[45,26] cannot find symbol
+  symbol:   method getEmail()
+  location: variable savedUser of type com.example.demo.model.User
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/AuthService.java:[44,26] cannot find symbol
+  symbol:   method getLastName()
+  location: variable savedUser of type com.example.demo.model.User
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/AuthService.java:[43,26] cannot find symbol
+  symbol:   method getFirstName()
+  location: variable savedUser of type com.example.demo.model.User
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/AuthService.java:[42,26] cannot find symbol
+  symbol:   method getId()
+  location: variable savedUser of type com.example.demo.model.User
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/AuthService.java:[52,62] cannot find symbol
+  symbol:   method getEmail()
+  location: variable request of type com.example.demo.dto.LoginRequest
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/AuthService.java:[54,73] cannot find symbol
+  symbol:   method getEmail()
+  location: variable request of type com.example.demo.dto.LoginRequest
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/AuthService.java:[63,36] cannot find symbol
+  symbol:   method getPassword()
+  location: variable request of type com.example.demo.dto.LoginRequest
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/AuthService.java:[63,56] cannot find symbol
+  symbol:   method getPassword()
+  location: variable user of type com.example.demo.model.User
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/AuthService.java:[67,59] cannot find symbol
+  symbol:   method getEmail()
+  location: variable user of type com.example.demo.model.User
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/AuthService.java:[75,21] cannot find symbol
+  symbol:   method getRole()
+  location: variable user of type com.example.demo.model.User
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/AuthService.java:[73,21] cannot find symbol
+  symbol:   method getEmail()
+  location: variable user of type com.example.demo.model.User
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/AuthService.java:[72,21] cannot find symbol
+  symbol:   method getLastName()
+  location: variable user of type com.example.demo.model.User
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/AuthService.java:[71,21] cannot find symbol
+  symbol:   method getFirstName()
+  location: variable user of type com.example.demo.model.User
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/AuthService.java:[70,21] cannot find symbol
+  symbol:   method getId()
+  location: variable user of type com.example.demo.model.User
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/AuthService.java:[88,31] cannot find symbol
+  symbol:   method getId()
+  location: variable user of type com.example.demo.model.User
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[27,32] cannot find symbol
+  symbol:   method getResourceName()
+  location: variable payload of type com.example.demo.dto.BookingRequest
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[27,59] cannot find symbol
+  symbol:   method getDate()
+  location: variable payload of type com.example.demo.dto.BookingRequest
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[27,78] cannot find symbol
+  symbol:   method getStartTime()
+  location: variable payload of type com.example.demo.dto.BookingRequest
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[27,102] cannot find symbol
+  symbol:   method getEndTime()
+  location: variable payload of type com.example.demo.dto.BookingRequest
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[32,40] cannot find symbol
+  symbol:   method getResourceName()
+  location: variable payload of type com.example.demo.dto.BookingRequest
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[33,32] cannot find symbol
+  symbol:   method getDate()
+  location: variable payload of type com.example.demo.dto.BookingRequest
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[34,37] cannot find symbol
+  symbol:   method getStartTime()
+  location: variable payload of type com.example.demo.dto.BookingRequest
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[35,35] cannot find symbol
+  symbol:   method getEndTime()
+  location: variable payload of type com.example.demo.dto.BookingRequest
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[36,35] cannot find symbol
+  symbol:   method getPurpose()
+  location: variable payload of type com.example.demo.dto.BookingRequest
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[37,37] cannot find symbol
+  symbol:   method getAttendees()
+  location: variable payload of type com.example.demo.dto.BookingRequest
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[38,16] cannot find symbol
+  symbol:   method setRequestedByUserId(java.lang.Long)
+  location: variable booking of type com.example.demo.model.Booking
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[39,16] cannot find symbol
+  symbol:   method setRequestedByEmail(java.lang.String)
+  location: variable booking of type com.example.demo.model.Booking
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[40,16] cannot find symbol
+  symbol:   method setStatus(com.example.demo.model.BookingStatus)
+  location: variable booking of type com.example.demo.model.Booking
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[47,20] cannot find symbol
+  symbol:   method getResourceName()
+  location: variable payload of type com.example.demo.dto.BookingRequest
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[47,57] cannot find symbol
+  symbol:   method getResourceName()
+  location: variable payload of type com.example.demo.dto.BookingRequest
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[50,20] cannot find symbol
+  symbol:   method getDate()
+  location: variable payload of type com.example.demo.dto.BookingRequest
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[53,20] cannot find symbol
+  symbol:   method getStartTime()
+  location: variable payload of type com.example.demo.dto.BookingRequest
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[53,54] cannot find symbol
+  symbol:   method getEndTime()
+  location: variable payload of type com.example.demo.dto.BookingRequest
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[53,87] cannot find symbol
+  symbol:   method getEndTime()
+  location: variable payload of type com.example.demo.dto.BookingRequest
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[53,116] cannot find symbol
+  symbol:   method getStartTime()
+  location: variable payload of type com.example.demo.dto.BookingRequest
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[56,20] cannot find symbol
+  symbol:   method getPurpose()
+  location: variable payload of type com.example.demo.dto.BookingRequest
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[56,52] cannot find symbol
+  symbol:   method getPurpose()
+  location: variable payload of type com.example.demo.dto.BookingRequest
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[59,20] cannot find symbol
+  symbol:   method getAttendees()
+  location: variable payload of type com.example.demo.dto.BookingRequest
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[59,54] cannot find symbol
+  symbol:   method getAttendees()
+  location: variable payload of type com.example.demo.dto.BookingRequest
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[66,59] cannot find symbol
+  symbol:   method getStartTime()
+  location: variable b of type com.example.demo.model.Booking
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[66,77] cannot find symbol
+  symbol:   method getEndTime()
+  location: variable b of type com.example.demo.model.Booking
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[81,68] cannot find symbol
+  symbol:   method getResourceName()
+  location: variable booking of type com.example.demo.model.Booking
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[81,134] incompatible types: bad return type in lambda expression
+    java.lang.Object cannot be converted to boolean
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[91,21] cannot find symbol
+  symbol:   method getStatus()
+  location: variable existing of type com.example.demo.model.Booking
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[95,33] cannot find symbol
+  symbol:   method getResourceName()
+  location: variable existing of type com.example.demo.model.Booking
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[95,61] cannot find symbol
+  symbol:   method getDate()
+  location: variable existing of type com.example.demo.model.Booking
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[95,81] cannot find symbol
+  symbol:   method getStartTime()
+  location: variable existing of type com.example.demo.model.Booking
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[95,106] cannot find symbol
+  symbol:   method getEndTime()
+  location: variable existing of type com.example.demo.model.Booking
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[99,17] cannot find symbol
+  symbol:   method setStatus(com.example.demo.model.BookingStatus)
+  location: variable existing of type com.example.demo.model.Booking
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[100,42] cannot find symbol
+  symbol:   method getReason()
+  location: variable action of type com.example.demo.dto.BookingActionRequest
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[101,17] cannot find symbol
+  symbol:   method setReviewedByAdminId(java.lang.Long)
+  location: variable existing of type com.example.demo.model.Booking
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[109,21] cannot find symbol
+  symbol:   method getStatus()
+  location: variable existing of type com.example.demo.model.Booking
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[113,17] cannot find symbol
+  symbol:   method setStatus(com.example.demo.model.BookingStatus)
+  location: variable existing of type com.example.demo.model.Booking
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[114,42] cannot find symbol
+  symbol:   method getReason()
+  location: variable action of type com.example.demo.dto.BookingActionRequest
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[115,17] cannot find symbol
+  symbol:   method setReviewedByAdminId(java.lang.Long)
+  location: variable existing of type com.example.demo.model.Booking
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[123,21] cannot find symbol
+  symbol:   method getStatus()
+  location: variable existing of type com.example.demo.model.Booking
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[127,22] cannot find symbol
+  symbol:   method getRequestedByUserId()
+  location: variable existing of type com.example.demo.model.Booking
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[131,17] cannot find symbol
+  symbol:   method setStatus(com.example.demo.model.BookingStatus)
+  location: variable existing of type com.example.demo.model.Booking
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[132,17] cannot find symbol
+  symbol:   method setDecisionReason(java.lang.String)
+  location: variable existing of type com.example.demo.model.Booking
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[149,24] cannot find symbol
+  symbol:   method getDecisionReason()
+  location: variable booking of type com.example.demo.model.Booking
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[148,24] cannot find symbol
+  symbol:   method getStatus()
+  location: variable booking of type com.example.demo.model.Booking
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[147,24] cannot find symbol
+  symbol:   method getRequestedByEmail()
+  location: variable booking of type com.example.demo.model.Booking
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[146,24] cannot find symbol
+  symbol:   method getRequestedByUserId()
+  location: variable booking of type com.example.demo.model.Booking
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[145,24] cannot find symbol
+  symbol:   method getAttendees()
+  location: variable booking of type com.example.demo.model.Booking
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[144,24] cannot find symbol
+  symbol:   method getPurpose()
+  location: variable booking of type com.example.demo.model.Booking
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[143,24] cannot find symbol
+  symbol:   method getEndTime()
+  location: variable booking of type com.example.demo.model.Booking
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[142,24] cannot find symbol
+  symbol:   method getStartTime()
+  location: variable booking of type com.example.demo.model.Booking
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[141,24] cannot find symbol
+  symbol:   method getDate()
+  location: variable booking of type com.example.demo.model.Booking
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[140,24] cannot find symbol
+  symbol:   method getResourceName()
+  location: variable booking of type com.example.demo.model.Booking
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[139,24] cannot find symbol
+  symbol:   method getId()
+  location: variable booking of type com.example.demo.model.Booking
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/ResourceService.java:[31,53] cannot find symbol
+  symbol:   method getResourceName()
+  location: variable resourceDetails of type com.example.demo.model.Resource
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/ResourceService.java:[32,45] cannot find symbol
+  symbol:   method getType()
+  location: variable resourceDetails of type com.example.demo.model.Resource
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/ResourceService.java:[33,49] cannot find symbol
+  symbol:   method getCapacity()
+  location: variable resourceDetails of type com.example.demo.model.Resource
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/ResourceService.java:[34,49] cannot find symbol
+  symbol:   method getLocation()
+  location: variable resourceDetails of type com.example.demo.model.Resource
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/ResourceService.java:[35,47] cannot find symbol
+  symbol:   method getStatus()
+  location: variable resourceDetails of type com.example.demo.model.Resource
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/ResourceService.java:[36,59] cannot find symbol
+  symbol:   method getAvailabilityWindow()
+  location: variable resourceDetails of type com.example.demo.model.Resource
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/ResourceService.java:[37,49] cannot find symbol
+  symbol:   method getImageUrl()
+  location: variable resourceDetails of type com.example.demo.model.Resource
+[INFO] 98 errors 
+[INFO] -------------------------------------------------------------
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  3.199 s
+[INFO] Finished at: 2026-04-05T23:01:14+05:30
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.14.1:compile (default-compile) on project demo: Compilation failure: Compilation failure: 
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/config/DataSeeder.java:[19,34] constructor Resource in class com.example.demo.model.Resource cannot be applied to given types;
+[ERROR]   required: no arguments
+[ERROR]   found:    <nulltype>,java.lang.String,java.lang.String,int,java.lang.String,java.lang.String,java.lang.String,java.lang.String
+[ERROR]   reason: actual and formal argument lists differ in length
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/config/DataSeeder.java:[20,34] constructor Resource in class com.example.demo.model.Resource cannot be applied to given types;
+[ERROR]   required: no arguments
+[ERROR]   found:    <nulltype>,java.lang.String,java.lang.String,int,java.lang.String,java.lang.String,java.lang.String,java.lang.String
+[ERROR]   reason: actual and formal argument lists differ in length
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/config/DataSeeder.java:[21,33] constructor Resource in class com.example.demo.model.Resource cannot be applied to given types;
+[ERROR]   required: no arguments
+[ERROR]   found:    <nulltype>,java.lang.String,java.lang.String,int,java.lang.String,java.lang.String,java.lang.String,java.lang.String
+[ERROR]   reason: actual and formal argument lists differ in length
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/config/DataSeeder.java:[22,33] constructor Resource in class com.example.demo.model.Resource cannot be applied to given types;
+[ERROR]   required: no arguments
+[ERROR]   found:    <nulltype>,java.lang.String,java.lang.String,int,java.lang.String,java.lang.String,java.lang.String,java.lang.String
+[ERROR]   reason: actual and formal argument lists differ in length
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/config/DataSeeder.java:[25,33] constructor Resource in class com.example.demo.model.Resource cannot be applied to given types;
+[ERROR]   required: no arguments
+[ERROR]   found:    <nulltype>,java.lang.String,java.lang.String,int,java.lang.String,java.lang.String,java.lang.String,java.lang.String
+[ERROR]   reason: actual and formal argument lists differ in length
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/config/DataSeeder.java:[26,33] constructor Resource in class com.example.demo.model.Resource cannot be applied to given types;
+[ERROR]   required: no arguments
+[ERROR]   found:    <nulltype>,java.lang.String,java.lang.String,int,java.lang.String,java.lang.String,java.lang.String,java.lang.String
+[ERROR]   reason: actual and formal argument lists differ in length
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/config/DataSeeder.java:[29,33] constructor Resource in class com.example.demo.model.Resource cannot be applied to given types;
+[ERROR]   required: no arguments
+[ERROR]   found:    <nulltype>,java.lang.String,java.lang.String,int,java.lang.String,java.lang.String,java.lang.String,java.lang.String
+[ERROR]   reason: actual and formal argument lists differ in length
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/config/DataSeeder.java:[30,33] constructor Resource in class com.example.demo.model.Resource cannot be applied to given types;
+[ERROR]   required: no arguments
+[ERROR]   found:    <nulltype>,java.lang.String,java.lang.String,int,java.lang.String,java.lang.String,java.lang.String,java.lang.String
+[ERROR]   reason: actual and formal argument lists differ in length
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/config/DataSeeder.java:[33,33] constructor Resource in class com.example.demo.model.Resource cannot be applied to given types;
+[ERROR]   required: no arguments
+[ERROR]   found:    <nulltype>,java.lang.String,java.lang.String,int,java.lang.String,java.lang.String,java.lang.String,java.lang.String
+[ERROR]   reason: actual and formal argument lists differ in length
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/config/DataSeeder.java:[34,33] constructor Resource in class com.example.demo.model.Resource cannot be applied to given types;
+[ERROR]   required: no arguments
+[ERROR]   found:    <nulltype>,java.lang.String,java.lang.String,int,java.lang.String,java.lang.String,java.lang.String,java.lang.String
+[ERROR]   reason: actual and formal argument lists differ in length
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/AuthService.java:[19,64] cannot find symbol
+[ERROR]   symbol:   method getEmail()
+[ERROR]   location: variable request of type com.example.demo.dto.RegisterRequest
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/AuthService.java:[22,49] cannot find symbol
+[ERROR]   symbol:   method getEmail()
+[ERROR]   location: variable request of type com.example.demo.dto.RegisterRequest
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/AuthService.java:[28,34] cannot find symbol
+[ERROR]   symbol:   method getFirstName()
+[ERROR]   location: variable request of type com.example.demo.dto.RegisterRequest
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/AuthService.java:[29,33] cannot find symbol
+[ERROR]   symbol:   method getLastName()
+[ERROR]   location: variable request of type com.example.demo.dto.RegisterRequest
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/AuthService.java:[30,30] cannot find symbol
+[ERROR]   symbol:   method getEmail()
+[ERROR]   location: variable request of type com.example.demo.dto.RegisterRequest
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/AuthService.java:[31,46] cannot find symbol
+[ERROR]   symbol:   method getPassword()
+[ERROR]   location: variable request of type com.example.demo.dto.RegisterRequest
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/AuthService.java:[32,13] cannot find symbol
+[ERROR]   symbol:   method setRole(java.lang.String)
+[ERROR]   location: variable user of type com.example.demo.model.User
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/AuthService.java:[34,20] cannot find symbol
+[ERROR]   symbol:   method getEmail()
+[ERROR]   location: variable request of type com.example.demo.dto.RegisterRequest
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/AuthService.java:[35,17] cannot find symbol
+[ERROR]   symbol:   method setRole(java.lang.String)
+[ERROR]   location: variable user of type com.example.demo.model.User
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/AuthService.java:[39,75] cannot find symbol
+[ERROR]   symbol:   method getId()
+[ERROR]   location: variable savedUser of type com.example.demo.model.User
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/AuthService.java:[47,26] cannot find symbol
+[ERROR]   symbol:   method getRole()
+[ERROR]   location: variable savedUser of type com.example.demo.model.User
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/AuthService.java:[45,26] cannot find symbol
+[ERROR]   symbol:   method getEmail()
+[ERROR]   location: variable savedUser of type com.example.demo.model.User
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/AuthService.java:[44,26] cannot find symbol
+[ERROR]   symbol:   method getLastName()
+[ERROR]   location: variable savedUser of type com.example.demo.model.User
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/AuthService.java:[43,26] cannot find symbol
+[ERROR]   symbol:   method getFirstName()
+[ERROR]   location: variable savedUser of type com.example.demo.model.User
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/AuthService.java:[42,26] cannot find symbol
+[ERROR]   symbol:   method getId()
+[ERROR]   location: variable savedUser of type com.example.demo.model.User
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/AuthService.java:[52,62] cannot find symbol
+[ERROR]   symbol:   method getEmail()
+[ERROR]   location: variable request of type com.example.demo.dto.LoginRequest
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/AuthService.java:[54,73] cannot find symbol
+[ERROR]   symbol:   method getEmail()
+[ERROR]   location: variable request of type com.example.demo.dto.LoginRequest
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/AuthService.java:[63,36] cannot find symbol
+[ERROR]   symbol:   method getPassword()
+[ERROR]   location: variable request of type com.example.demo.dto.LoginRequest
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/AuthService.java:[63,56] cannot find symbol
+[ERROR]   symbol:   method getPassword()
+[ERROR]   location: variable user of type com.example.demo.model.User
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/AuthService.java:[67,59] cannot find symbol
+[ERROR]   symbol:   method getEmail()
+[ERROR]   location: variable user of type com.example.demo.model.User
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/AuthService.java:[75,21] cannot find symbol
+[ERROR]   symbol:   method getRole()
+[ERROR]   location: variable user of type com.example.demo.model.User
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/AuthService.java:[73,21] cannot find symbol
+[ERROR]   symbol:   method getEmail()
+[ERROR]   location: variable user of type com.example.demo.model.User
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/AuthService.java:[72,21] cannot find symbol
+[ERROR]   symbol:   method getLastName()
+[ERROR]   location: variable user of type com.example.demo.model.User
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/AuthService.java:[71,21] cannot find symbol
+[ERROR]   symbol:   method getFirstName()
+[ERROR]   location: variable user of type com.example.demo.model.User
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/AuthService.java:[70,21] cannot find symbol
+[ERROR]   symbol:   method getId()
+[ERROR]   location: variable user of type com.example.demo.model.User
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/AuthService.java:[88,31] cannot find symbol
+[ERROR]   symbol:   method getId()
+[ERROR]   location: variable user of type com.example.demo.model.User
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[27,32] cannot find symbol
+[ERROR]   symbol:   method getResourceName()
+[ERROR]   location: variable payload of type com.example.demo.dto.BookingRequest
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[27,59] cannot find symbol
+[ERROR]   symbol:   method getDate()
+[ERROR]   location: variable payload of type com.example.demo.dto.BookingRequest
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[27,78] cannot find symbol
+[ERROR]   symbol:   method getStartTime()
+[ERROR]   location: variable payload of type com.example.demo.dto.BookingRequest
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[27,102] cannot find symbol
+[ERROR]   symbol:   method getEndTime()
+[ERROR]   location: variable payload of type com.example.demo.dto.BookingRequest
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[32,40] cannot find symbol
+[ERROR]   symbol:   method getResourceName()
+[ERROR]   location: variable payload of type com.example.demo.dto.BookingRequest
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[33,32] cannot find symbol
+[ERROR]   symbol:   method getDate()
+[ERROR]   location: variable payload of type com.example.demo.dto.BookingRequest
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[34,37] cannot find symbol
+[ERROR]   symbol:   method getStartTime()
+[ERROR]   location: variable payload of type com.example.demo.dto.BookingRequest
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[35,35] cannot find symbol
+[ERROR]   symbol:   method getEndTime()
+[ERROR]   location: variable payload of type com.example.demo.dto.BookingRequest
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[36,35] cannot find symbol
+[ERROR]   symbol:   method getPurpose()
+[ERROR]   location: variable payload of type com.example.demo.dto.BookingRequest
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[37,37] cannot find symbol
+[ERROR]   symbol:   method getAttendees()
+[ERROR]   location: variable payload of type com.example.demo.dto.BookingRequest
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[38,16] cannot find symbol
+[ERROR]   symbol:   method setRequestedByUserId(java.lang.Long)
+[ERROR]   location: variable booking of type com.example.demo.model.Booking
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[39,16] cannot find symbol
+[ERROR]   symbol:   method setRequestedByEmail(java.lang.String)
+[ERROR]   location: variable booking of type com.example.demo.model.Booking
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[40,16] cannot find symbol
+[ERROR]   symbol:   method setStatus(com.example.demo.model.BookingStatus)
+[ERROR]   location: variable booking of type com.example.demo.model.Booking
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[47,20] cannot find symbol
+[ERROR]   symbol:   method getResourceName()
+[ERROR]   location: variable payload of type com.example.demo.dto.BookingRequest
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[47,57] cannot find symbol
+[ERROR]   symbol:   method getResourceName()
+[ERROR]   location: variable payload of type com.example.demo.dto.BookingRequest
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[50,20] cannot find symbol
+[ERROR]   symbol:   method getDate()
+[ERROR]   location: variable payload of type com.example.demo.dto.BookingRequest
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[53,20] cannot find symbol
+[ERROR]   symbol:   method getStartTime()
+[ERROR]   location: variable payload of type com.example.demo.dto.BookingRequest
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[53,54] cannot find symbol
+[ERROR]   symbol:   method getEndTime()
+[ERROR]   location: variable payload of type com.example.demo.dto.BookingRequest
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[53,87] cannot find symbol
+[ERROR]   symbol:   method getEndTime()
+[ERROR]   location: variable payload of type com.example.demo.dto.BookingRequest
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[53,116] cannot find symbol
+[ERROR]   symbol:   method getStartTime()
+[ERROR]   location: variable payload of type com.example.demo.dto.BookingRequest
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[56,20] cannot find symbol
+[ERROR]   symbol:   method getPurpose()
+[ERROR]   location: variable payload of type com.example.demo.dto.BookingRequest
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[56,52] cannot find symbol
+[ERROR]   symbol:   method getPurpose()
+[ERROR]   location: variable payload of type com.example.demo.dto.BookingRequest
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[59,20] cannot find symbol
+[ERROR]   symbol:   method getAttendees()
+[ERROR]   location: variable payload of type com.example.demo.dto.BookingRequest
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[59,54] cannot find symbol
+[ERROR]   symbol:   method getAttendees()
+[ERROR]   location: variable payload of type com.example.demo.dto.BookingRequest
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[66,59] cannot find symbol
+[ERROR]   symbol:   method getStartTime()
+[ERROR]   location: variable b of type com.example.demo.model.Booking
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[66,77] cannot find symbol
+[ERROR]   symbol:   method getEndTime()
+[ERROR]   location: variable b of type com.example.demo.model.Booking
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[81,68] cannot find symbol
+[ERROR]   symbol:   method getResourceName()
+[ERROR]   location: variable booking of type com.example.demo.model.Booking
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[81,134] incompatible types: bad return type in lambda expression
+[ERROR]     java.lang.Object cannot be converted to boolean
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[91,21] cannot find symbol
+[ERROR]   symbol:   method getStatus()
+[ERROR]   location: variable existing of type com.example.demo.model.Booking
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[95,33] cannot find symbol
+[ERROR]   symbol:   method getResourceName()
+[ERROR]   location: variable existing of type com.example.demo.model.Booking
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[95,61] cannot find symbol
+[ERROR]   symbol:   method getDate()
+[ERROR]   location: variable existing of type com.example.demo.model.Booking
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[95,81] cannot find symbol
+[ERROR]   symbol:   method getStartTime()
+[ERROR]   location: variable existing of type com.example.demo.model.Booking
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[95,106] cannot find symbol
+[ERROR]   symbol:   method getEndTime()
+[ERROR]   location: variable existing of type com.example.demo.model.Booking
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[99,17] cannot find symbol
+[ERROR]   symbol:   method setStatus(com.example.demo.model.BookingStatus)
+[ERROR]   location: variable existing of type com.example.demo.model.Booking
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[100,42] cannot find symbol
+[ERROR]   symbol:   method getReason()
+[ERROR]   location: variable action of type com.example.demo.dto.BookingActionRequest
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[101,17] cannot find symbol
+[ERROR]   symbol:   method setReviewedByAdminId(java.lang.Long)
+[ERROR]   location: variable existing of type com.example.demo.model.Booking
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[109,21] cannot find symbol
+[ERROR]   symbol:   method getStatus()
+[ERROR]   location: variable existing of type com.example.demo.model.Booking
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[113,17] cannot find symbol
+[ERROR]   symbol:   method setStatus(com.example.demo.model.BookingStatus)
+[ERROR]   location: variable existing of type com.example.demo.model.Booking
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[114,42] cannot find symbol
+[ERROR]   symbol:   method getReason()
+[ERROR]   location: variable action of type com.example.demo.dto.BookingActionRequest
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[115,17] cannot find symbol
+[ERROR]   symbol:   method setReviewedByAdminId(java.lang.Long)
+[ERROR]   location: variable existing of type com.example.demo.model.Booking
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[123,21] cannot find symbol
+[ERROR]   symbol:   method getStatus()
+[ERROR]   location: variable existing of type com.example.demo.model.Booking
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[127,22] cannot find symbol
+[ERROR]   symbol:   method getRequestedByUserId()
+[ERROR]   location: variable existing of type com.example.demo.model.Booking
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[131,17] cannot find symbol
+[ERROR]   symbol:   method setStatus(com.example.demo.model.BookingStatus)
+[ERROR]   location: variable existing of type com.example.demo.model.Booking
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[132,17] cannot find symbol
+[ERROR]   symbol:   method setDecisionReason(java.lang.String)
+[ERROR]   location: variable existing of type com.example.demo.model.Booking
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[149,24] cannot find symbol
+[ERROR]   symbol:   method getDecisionReason()
+[ERROR]   location: variable booking of type com.example.demo.model.Booking
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[148,24] cannot find symbol
+[ERROR]   symbol:   method getStatus()
+[ERROR]   location: variable booking of type com.example.demo.model.Booking
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[147,24] cannot find symbol
+[ERROR]   symbol:   method getRequestedByEmail()
+[ERROR]   location: variable booking of type com.example.demo.model.Booking
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[146,24] cannot find symbol
+[ERROR]   symbol:   method getRequestedByUserId()
+[ERROR]   location: variable booking of type com.example.demo.model.Booking
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[145,24] cannot find symbol
+[ERROR]   symbol:   method getAttendees()
+[ERROR]   location: variable booking of type com.example.demo.model.Booking
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[144,24] cannot find symbol
+[ERROR]   symbol:   method getPurpose()
+[ERROR]   location: variable booking of type com.example.demo.model.Booking
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[143,24] cannot find symbol
+[ERROR]   symbol:   method getEndTime()
+[ERROR]   location: variable booking of type com.example.demo.model.Booking
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[142,24] cannot find symbol
+[ERROR]   symbol:   method getStartTime()
+[ERROR]   location: variable booking of type com.example.demo.model.Booking
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[141,24] cannot find symbol
+[ERROR]   symbol:   method getDate()
+[ERROR]   location: variable booking of type com.example.demo.model.Booking
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[140,24] cannot find symbol
+[ERROR]   symbol:   method getResourceName()
+[ERROR]   location: variable booking of type com.example.demo.model.Booking
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/BookingService.java:[139,24] cannot find symbol
+[ERROR]   symbol:   method getId()
+[ERROR]   location: variable booking of type com.example.demo.model.Booking
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/ResourceService.java:[31,53] cannot find symbol
+[ERROR]   symbol:   method getResourceName()
+[ERROR]   location: variable resourceDetails of type com.example.demo.model.Resource
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/ResourceService.java:[32,45] cannot find symbol
+[ERROR]   symbol:   method getType()
+[ERROR]   location: variable resourceDetails of type com.example.demo.model.Resource
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/ResourceService.java:[33,49] cannot find symbol
+[ERROR]   symbol:   method getCapacity()
+[ERROR]   location: variable resourceDetails of type com.example.demo.model.Resource
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/ResourceService.java:[34,49] cannot find symbol
+[ERROR]   symbol:   method getLocation()
+[ERROR]   location: variable resourceDetails of type com.example.demo.model.Resource
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/ResourceService.java:[35,47] cannot find symbol
+[ERROR]   symbol:   method getStatus()
+[ERROR]   location: variable resourceDetails of type com.example.demo.model.Resource
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/ResourceService.java:[36,59] cannot find symbol
+[ERROR]   symbol:   method getAvailabilityWindow()
+[ERROR]   location: variable resourceDetails of type com.example.demo.model.Resource
+[ERROR] /D:/3Y2S new/SpaceXplore/backend/src/main/java/com/example/demo/service/ResourceService.java:[37,49] cannot find symbol
+[ERROR]   symbol:   method getImageUrl()
+[ERROR]   location: variable resourceDetails of type com.example.demo.model.Resource
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
