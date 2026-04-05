@@ -106,16 +106,15 @@ function AdminDashboard() {
     <div className="flex h-screen w-full bg-[#f4f7fe] dark:bg-slate-950 font-sans text-slate-800 dark:text-slate-200">
       
       {/* ---------------- Admin Sidebar ---------------- */}
-      <aside className="w-64 shrink-0 bg-[#0f172a] dark:bg-black text-white flex flex-col transition-colors duration-300 border-r border-indigo-500/20">
-        <div className="flex h-20 items-center justify-center border-b border-indigo-400/20 px-6">
+      <aside className="w-64 shrink-0 bg-[#2b2b4f] dark:bg-slate-900 text-white flex flex-col transition-colors duration-300">
+        <div className="flex h-20 items-center justify-center border-b border-indigo-400/20 px-6 dark:border-white/10">
           <div className="flex items-center gap-3">
              <img src={logoImage} alt="Logo" className="w-8 h-8 object-contain filter invert opacity-90" />
-             <span className="text-xl font-bold tracking-wide text-emerald-400">AdminPanel</span>
+             <span className="text-xl font-bold tracking-wide">AdminPanel</span>
           </div>
         </div>
 
         <div className="flex-1 px-4 py-8 overflow-y-auto">
-          <p className="text-[10px] uppercase font-bold text-slate-500 tracking-widest mb-4 px-4">Management Base</p>
           <ul className="space-y-2">
             {menuItems.map((item) => (
               <li key={item.id}>
@@ -123,8 +122,8 @@ function AdminDashboard() {
                   onClick={() => setActiveTab(item.id)}
                   className={`w-full flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-300 ${
                     activeTab === item.id 
-                      ? 'bg-emerald-500/90 text-white shadow-[0_0_15px_rgba(16,185,129,0.4)]' 
-                      : 'text-slate-400 hover:bg-white/10 hover:text-white'
+                      ? 'bg-indigo-600/90 text-white shadow-[0_0_15px_rgba(79,70,229,0.4)]' 
+                      : 'text-indigo-200 hover:bg-white/10 hover:text-white'
                   }`}
                 >
                   {item.icon}
@@ -135,10 +134,10 @@ function AdminDashboard() {
           </ul>
         </div>
 
-        <div className="p-4 mt-auto border-t border-slate-700/50">
+        <div className="p-4 mt-auto border-t border-indigo-400/20 dark:border-white/10">
            <button 
              onClick={handleLogout}
-             className="w-full flex items-center gap-4 px-4 py-3 text-slate-400 hover:bg-white/10 hover:text-white rounded-xl transition-all"
+             className="w-full flex items-center gap-4 px-4 py-3 text-indigo-200 hover:bg-white/10 hover:text-white rounded-xl transition-all"
            >
              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
              <span className="font-medium text-sm">Log out Admin</span>
@@ -152,7 +151,7 @@ function AdminDashboard() {
         {/* Top Header */}
         <header className="flex h-20 items-center justify-between bg-white/50 dark:bg-slate-900/50 px-8 shrink-0 backdrop-blur-sm border-b border-slate-200 dark:border-slate-800">
           <div>
-            <h1 className="text-2xl font-black text-[#0f172a] dark:text-white tracking-tight">
+            <h1 className="text-2xl font-black text-[#2b2b4f] dark:text-white tracking-tight">
               {activeTab === 'dashboard' && 'Admin Overview'}
               {activeTab === 'rooms' && 'Room Directory'}
               {activeTab === 'maintenance' && 'Maintenance Hub'}
@@ -160,14 +159,14 @@ function AdminDashboard() {
             </h1>
           </div>
 
-          <div className="flex justify-end gap-5 font-bold mt-[-15px] mr-[100px] text-xs absolute sm:relative ">
+          <div className="flex items-center gap-6">
               <button 
                  onClick={() => {
                    document.documentElement.classList.remove('dark');
                    localStorage.theme = 'light';
                    setIsDarkMode(false);
                  }} 
-                 className={`hidden sm:block ${isDarkMode ? 'text-slate-400' : 'text-slate-800'}`}>Light
+                 className={`hidden sm:block text-xs font-bold ${isDarkMode ? 'text-slate-400 hover:text-slate-300' : 'text-indigo-600 hover:text-indigo-800'}`}>Light
               </button>
               <button 
                  onClick={() => {
@@ -175,17 +174,15 @@ function AdminDashboard() {
                    localStorage.theme = 'dark';
                    setIsDarkMode(true);
                  }} 
-                 className={`hidden sm:block ${isDarkMode ? 'text-white' : 'text-slate-400'}`}>Dark
+                 className={`hidden sm:block text-xs font-bold ${isDarkMode ? 'text-white' : 'text-slate-400 hover:text-slate-600'}`}>Dark
               </button>
-          </div>
 
-          <div className="flex items-center gap-6">
-             <div className="flex items-center gap-3">
+             <div className="flex items-center gap-3 ml-4 border-l border-slate-200 dark:border-slate-700 pl-6">
                 <div className="hidden sm:block text-right">
-                  <p className="text-sm font-bold text-[#0f172a] dark:text-white leading-none">System Admin</p>
-                  <p className="text-[10px] font-bold text-emerald-500 mt-1 uppercase tracking-widest">Root Access</p>
+                  <p className="text-sm font-bold text-[#2b2b4f] dark:text-white leading-none">System Admin</p>
+                  <p className="text-[10px] font-bold text-indigo-500 mt-1 uppercase tracking-widest">Root Access</p>
                 </div>
-                <div className="w-10 h-10 rounded-full bg-emerald-100 overflow-hidden border-2 border-emerald-500 shadow-sm flex items-center justify-center font-bold text-emerald-700">
+                <div className="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900/50 overflow-hidden border-2 border-indigo-500 shadow-sm flex items-center justify-center font-bold text-indigo-700 dark:text-indigo-300">
                   AD
                 </div>
              </div>
@@ -199,15 +196,15 @@ function AdminDashboard() {
           {activeTab === 'dashboard' && (
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                 <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700">
+                 <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-100 dark:border-slate-700">
                     <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Total Facilities</p>
-                    <h3 className="text-4xl font-black text-slate-800 dark:text-white mt-2">24</h3>
+                    <h3 className="text-4xl font-black text-[#2b2b4f] dark:text-white mt-2">24</h3>
                  </div>
-                 <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700">
+                 <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-100 dark:border-slate-700">
                     <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Active Bookings</p>
-                    <h3 className="text-4xl font-black text-emerald-500 mt-2">112</h3>
+                    <h3 className="text-4xl font-black text-indigo-500 mt-2">112</h3>
                  </div>
-                 <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700 relative overflow-hidden">
+                 <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-100 dark:border-slate-700 relative overflow-hidden">
                     <div className="absolute top-0 right-0 p-4">
                        <span className="flex h-3 w-3"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span><span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span></span>
                     </div>
@@ -215,8 +212,8 @@ function AdminDashboard() {
                     <h3 className="text-4xl font-black text-red-500 mt-2">3</h3>
                  </div>
               </div>
-              <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700">
-                  <h4 className="font-bold mb-4">Latest System Logs</h4>
+              <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-100 dark:border-slate-700">
+                  <h4 className="font-bold text-[#2b2b4f] dark:text-white mb-4">Latest System Logs</h4>
                   <ul className="text-sm space-y-3 text-slate-600 dark:text-slate-300">
                      <li className="flex gap-4">
                        <span className="text-slate-400 w-24 shrink-0 font-mono text-xs">10:45 AM</span> 
@@ -239,21 +236,21 @@ function AdminDashboard() {
           {activeTab === 'rooms' && (
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
               {/* Form specifically requested by user to ADD ROOMS */}
-              <div className="xl:col-span-1 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg h-fit">
-                 <h3 className="text-xl font-bold mb-4 text-emerald-500">Deploy New Room</h3>
+              <div className="xl:col-span-1 border border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-[0_2px_10px_rgba(0,0,0,0.02)] h-fit">
+                 <h3 className="text-xl font-bold mb-4 text-indigo-500">Deploy New Room</h3>
                  
-                 {formStatus.success && <div className="mb-4 p-3 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-200 text-sm font-bold">Room created successfully!</div>}
+                 {formStatus.success && <div className="mb-4 p-3 rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-200 text-sm font-bold">Room created successfully!</div>}
                  {formStatus.error && <div className="mb-4 p-3 rounded-lg bg-red-50 text-red-600 border border-red-200 text-sm font-bold">Error: {formStatus.error}</div>}
 
                  <form onSubmit={handleCreateRoom} className="space-y-4">
                    <div>
                      <label className="block text-xs font-bold text-slate-500 mb-1">Room Name / ID</label>
-                     <input required type="text" name="resourceName" value={roomForm.resourceName} onChange={handleRoomChange} placeholder="e.g. F1205" className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                     <input required type="text" name="resourceName" value={roomForm.resourceName} onChange={handleRoomChange} placeholder="e.g. F1205" className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
                    </div>
                    <div className="grid grid-cols-2 gap-4">
                      <div>
                        <label className="block text-xs font-bold text-slate-500 mb-1">Type</label>
-                       <select name="type" value={roomForm.type} onChange={handleRoomChange} className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                       <select name="type" value={roomForm.type} onChange={handleRoomChange} className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                           <option value="CLASSROOM">Classroom</option>
                           <option value="LAB">Laboratory</option>
                           <option value="LIBRARY_ROOM">Library Room</option>
@@ -262,22 +259,22 @@ function AdminDashboard() {
                      </div>
                      <div>
                        <label className="block text-xs font-bold text-slate-500 mb-1">Capacity</label>
-                       <input required type="number" name="capacity" value={roomForm.capacity} onChange={handleRoomChange} placeholder="Max pax" className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                       <input required type="number" name="capacity" value={roomForm.capacity} onChange={handleRoomChange} placeholder="Max pax" className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
                      </div>
                    </div>
                    <div>
                      <label className="block text-xs font-bold text-slate-500 mb-1">Location / Building</label>
-                     <input required type="text" name="location" value={roomForm.location} onChange={handleRoomChange} placeholder="e.g. Computing Faculty Level 4" className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                     <input required type="text" name="location" value={roomForm.location} onChange={handleRoomChange} placeholder="e.g. Computing Faculty Level 4" className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
                    </div>
-                   <button disabled={formStatus.loading} type="submit" className="w-full mt-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2.5 rounded-lg transition-colors shadow-lg shadow-emerald-500/30">
+                   <button disabled={formStatus.loading} type="submit" className="w-full mt-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-lg transition-colors shadow-md shadow-indigo-500/30">
                      {formStatus.loading ? 'Deploying...' : '+ Add Resource'}
                    </button>
                  </form>
               </div>
 
               {/* Existing Rooms List */}
-              <div className="xl:col-span-2 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm">
-                 <h3 className="text-xl font-bold mb-4">Current Asset Catalogue</h3>
+              <div className="xl:col-span-2 border border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
+                 <h3 className="text-xl font-bold text-[#2b2b4f] dark:text-white mb-4">Current Asset Catalogue</h3>
                  <div className="overflow-x-auto">
                     <table className="w-full text-left text-sm">
                        <thead>
@@ -292,11 +289,11 @@ function AdminDashboard() {
                           {resources.length === 0 && <tr><td colSpan="4" className="py-4 text-center text-slate-400">Loading resources...</td></tr>}
                           {resources.map((res) => (
                              <tr key={res.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                                <td className="py-3 pr-4 font-semibold text-slate-800 dark:text-slate-200">{res.resourceName}</td>
+                                <td className="py-3 pr-4 font-semibold text-[#2b2b4f] dark:text-slate-200">{res.resourceName}</td>
                                 <td className="py-3 px-4 text-slate-500">{res.type}</td>
                                 <td className="py-3 px-4 text-slate-500">{res.capacity} Pax</td>
                                 <td className="py-3 px-4">
-                                   <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest ${res.status === 'AVAILABLE' ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400' : 'bg-amber-100 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400'}`}>
+                                   <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest ${res.status === 'AVAILABLE' ? 'bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400' : 'bg-amber-100 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400'}`}>
                                      {res.status}
                                    </span>
                                 </td>
@@ -311,9 +308,9 @@ function AdminDashboard() {
 
           {/* TAB: MAINTENANCE */}
           {activeTab === 'maintenance' && (
-            <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700">
+            <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-100 dark:border-slate-700">
                <div className="flex justify-between items-center mb-6">
-                 <h3 className="text-xl font-bold text-slate-800 dark:text-white">Maintenance Tickets</h3>
+                 <h3 className="text-xl font-bold text-[#2b2b4f] dark:text-white">Maintenance Tickets</h3>
                  <button className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg transition-colors shadow-lg shadow-red-500/30 text-sm">
                     Report Outage
                  </button>
@@ -333,7 +330,7 @@ function AdminDashboard() {
                         <p className="text-sm mt-1 text-slate-600 dark:text-slate-300">The primary HDMI port is unresponsive. The bulb indicates low lifespan.</p>
                         <div className="mt-4 flex gap-2">
                            <span className="px-2 py-1 bg-red-200 text-red-800 dark:bg-red-900/40 dark:text-red-300 rounded text-xs font-bold">Severity: High</span>
-                           <span className="px-2 py-1 bg-slate-200 text-slate-800 dark:bg-slate-700 dark:text-slate-300 rounded text-xs font-bold">Tech Dispatched</span>
+                           <span className="px-2 py-1 bg-slate-200 text-[#2b2b4f] dark:bg-slate-700 dark:text-slate-300 rounded text-xs font-bold">Tech Dispatched</span>
                         </div>
                      </div>
                   </div>
@@ -351,7 +348,7 @@ function AdminDashboard() {
                         <p className="text-sm mt-1 text-slate-600 dark:text-slate-300">Scheduled bi-monthly deep filter wash for room A405.</p>
                         <div className="mt-4 flex gap-2">
                            <span className="px-2 py-1 bg-amber-200 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 rounded text-xs font-bold">Severity: Low</span>
-                           <span className="px-2 py-1 bg-slate-200 text-slate-800 dark:bg-slate-700 dark:text-slate-300 rounded text-xs font-bold">Pending Quote</span>
+                           <span className="px-2 py-1 bg-slate-200 text-[#2b2b4f] dark:bg-slate-700 dark:text-slate-300 rounded text-xs font-bold">Pending Quote</span>
                         </div>
                      </div>
                   </div>
