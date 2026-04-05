@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import ThemeToggle from './ThemeToggle';
 import logoImage from './images/logo.png';
 
 function Register() {
@@ -77,32 +78,37 @@ function Register() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-[#1E293B]">
-      <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[320px] bg-gradient-to-b from-blue-100/80 via-indigo-50/70 to-transparent" />
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-200 transition-colors duration-500">
+      <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[320px] bg-gradient-to-b from-indigo-100/80 via-purple-50/70 to-transparent dark:from-indigo-900/20 dark:via-purple-900/10" />
 
-      <nav className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/85 backdrop-blur">
+      <nav className="sticky top-0 z-30 border-b border-slate-200/80 dark:border-white/10 bg-white/85 dark:bg-slate-900/85 backdrop-blur transition-colors">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
           <button
             type="button"
             onClick={() => navigate('/')}
             className="flex items-center gap-2 transition hover:opacity-80"
           >
-            <img src={logoImage} alt="SpaceXplore logo" className="h-20 w-auto sm:h-21" />
+            <img src={logoImage} alt="SpaceXplore logo" className="h-12 w-auto dark:invert dark:opacity-90" />
           </button>
-          <button
-            type="button"
-            onClick={() => navigate('/login')}
-            className="rounded-lg border border-[#3B82F6] px-4 py-2 text-sm font-semibold text-[#3B82F6] transition hover:bg-blue-50"
-          >
-            Login
-          </button>
+          
+          <div className="flex items-center gap-4">
+             <ThemeToggle />
+             <div className="h-5 w-px bg-slate-300 dark:bg-slate-700"></div>
+             <button
+               type="button"
+               onClick={() => navigate('/login')}
+               className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700 shadow-sm"
+             >
+               Login
+             </button>
+          </div>
         </div>
       </nav>
 
-      <div className="mx-auto flex max-w-md items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
-        <div className="w-full rounded-2xl border border-slate-200 bg-white p-8 shadow-lg">
-          <h1 className="text-3xl font-black text-center mb-2">Create Account</h1>
-          <p className="text-sm text-slate-600 text-center mb-6">Join SpaceXplore to manage campus spaces</p>
+      <div className="mx-auto flex max-w-md items-center justify-center px-4 py-12 sm:px-6 lg:px-8 mt-10">
+        <div className="w-full rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-8 shadow-[0_5px_20px_rgba(0,0,0,0.05)] dark:shadow-[0_5px_20px_rgba(0,0,0,0.3)] transition-colors">
+          <h1 className="text-3xl font-black text-center mb-2 text-slate-800 dark:text-white">Create Account</h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400 text-center mb-6">Join SpaceXplore Platform to manage campus spaces</p>
 
           {error && (
             <div className="mb-4 rounded-lg bg-red-50 border border-red-200 p-3 text-sm text-red-600">
@@ -113,7 +119,7 @@ function Register() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label htmlFor="firstName" className="block text-sm font-semibold mb-2">
+                <label htmlFor="firstName" className="block text-sm font-semibold mb-2 text-slate-700 dark:text-slate-300">
                   First Name
                 </label>
                 <input
@@ -122,12 +128,11 @@ function Register() {
                   name="firstName"
                   value={formData.firstName}
                   onChange={handleChange}
-                  className="w-full rounded-lg border border-slate-300 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#3B82F6]"
-                  placeholder="John"
+                  className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 transition-colors"
                 />
               </div>
               <div>
-                <label htmlFor="lastName" className="block text-sm font-semibold mb-2">
+                <label htmlFor="lastName" className="block text-sm font-semibold mb-2 text-slate-700 dark:text-slate-300">
                   Last Name
                 </label>
                 <input
@@ -136,14 +141,13 @@ function Register() {
                   name="lastName"
                   value={formData.lastName}
                   onChange={handleChange}
-                  className="w-full rounded-lg border border-slate-300 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#3B82F6]"
-                  placeholder="Doe"
+                  className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 transition-colors"
                 />
               </div>
             </div>
 
             <div>
-              <label htmlFor="email" className="block text-sm font-semibold mb-2">
+              <label htmlFor="email" className="block text-sm font-semibold mb-2 text-slate-700 dark:text-slate-300">
                 Email Address
               </label>
               <input
@@ -152,13 +156,29 @@ function Register() {
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                className="w-full rounded-lg border border-slate-300 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#3B82F6]"
-                placeholder="you@example.com"
+                className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 transition-colors"
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-semibold mb-2">
+              <label htmlFor="role" className="block text-sm font-semibold mb-2 text-slate-700 dark:text-slate-300">
+                Role
+              </label>
+              <select
+                id="role"
+                name="role"
+                value={formData.role}
+                onChange={handleChange}
+                className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 transition-colors"
+              >
+                <option value="STUDENT">Student</option>
+                <option value="STAFF">Staff</option>
+                <option value="ADMIN">Admin</option>
+              </select>
+            </div>
+
+            <div>
+              <label htmlFor="password" className="block text-sm font-semibold mb-2 text-slate-700 dark:text-slate-300">
                 Password
               </label>
               <input
@@ -167,13 +187,12 @@ function Register() {
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                className="w-full rounded-lg border border-slate-300 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#3B82F6]"
-                placeholder="••••••••"
+                className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 transition-colors"
               />
             </div>
 
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-semibold mb-2">
+              <label htmlFor="confirmPassword" className="block text-sm font-semibold mb-2 text-slate-700 dark:text-slate-300">
                 Confirm Password
               </label>
               <input
@@ -182,26 +201,26 @@ function Register() {
                 name="confirmPassword"
                 value={formData.confirmPassword}
                 onChange={handleChange}
-                className="w-full rounded-lg border border-slate-300 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#3B82F6]"
+                className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 transition-colors"
                 placeholder="••••••••"
               />
             </div>
 
             <button
-              type="submit"
-              disabled={loading}
-              className="w-full rounded-lg bg-[#3B82F6] px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-600 disabled:opacity-50"
+               type="submit"
+               disabled={loading}
+               className="w-full rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-700 disabled:opacity-50 mt-4 shadow-md shadow-indigo-500/20"
             >
-              {loading ? 'Creating Account...' : 'Create Account'}
+              {loading ? 'Creating account...' : 'Create Account'}
             </button>
           </form>
 
-          <div className="mt-6 text-center text-sm text-slate-600">
+          <div className="mt-6 text-center text-sm text-slate-500 dark:text-slate-400">
             Already have an account?{' '}
             <button
               type="button"
               onClick={() => navigate('/login')}
-              className="font-semibold text-[#3B82F6] hover:underline"
+              className="font-semibold text-indigo-600 dark:text-indigo-400 hover:underline"
             >
               Login here
             </button>

@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import ThemeToggle from './ThemeToggle';
 import logoImage from './images/logo.png';
 
 function AdminDashboard() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
-  const [isDarkMode, setIsDarkMode] = useState(false);
   const [activeTab, setActiveTab] = useState('dashboard');
 
   // Form state for adding a room
@@ -29,14 +29,6 @@ function AdminDashboard() {
         setUser({ firstName: 'Admin', lastName: 'User', role: 'Administrator' });
     } else {
         setUser(JSON.parse(storedUser));
-    }
-
-    if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-      setIsDarkMode(true);
-      document.documentElement.classList.add('dark');
-    } else {
-      setIsDarkMode(false);
-      document.documentElement.classList.remove('dark');
     }
 
     if (activeTab === 'rooms') {
@@ -160,22 +152,7 @@ function AdminDashboard() {
           </div>
 
           <div className="flex items-center gap-6">
-              <button 
-                 onClick={() => {
-                   document.documentElement.classList.remove('dark');
-                   localStorage.theme = 'light';
-                   setIsDarkMode(false);
-                 }} 
-                 className={`hidden sm:block text-xs font-bold ${isDarkMode ? 'text-slate-400 hover:text-slate-300' : 'text-indigo-600 hover:text-indigo-800'}`}>Light
-              </button>
-              <button 
-                 onClick={() => {
-                   document.documentElement.classList.add('dark');
-                   localStorage.theme = 'dark';
-                   setIsDarkMode(true);
-                 }} 
-                 className={`hidden sm:block text-xs font-bold ${isDarkMode ? 'text-white' : 'text-slate-400 hover:text-slate-600'}`}>Dark
-              </button>
+              <ThemeToggle />
 
              <div className="flex items-center gap-3 ml-4 border-l border-slate-200 dark:border-slate-700 pl-6">
                 <div className="hidden sm:block text-right">
