@@ -48,7 +48,7 @@ function Login() {
         // Store user info and token
         localStorage.setItem('user', JSON.stringify(data));
         localStorage.setItem('token', data.token || '');
-        navigate('/welcome');
+        navigate('/dashboard');
       } else {
         const errorData = await response.json();
         setError(errorData.message || 'Login failed. Please check your credentials.');
