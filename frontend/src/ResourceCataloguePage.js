@@ -2,6 +2,7 @@ import React, { useMemo, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import ThemeToggle from './ThemeToggle';
 import logoImage from './images/logo.png';
+import API_BASE_URL from './apiConfig';
 
 function ResourceCataloguePage() {
   const [resources, setResources] = useState([]);
@@ -15,7 +16,7 @@ function ResourceCataloguePage() {
 
   // Fetch resources from the backend API
   useEffect(() => {
-    fetch('http://localhost:8080/api/resources')
+    fetch(`${API_BASE_URL}/api/resources`)
       .then((res) => {
         if (!res.ok) {
           throw new Error('Network response was not ok');
