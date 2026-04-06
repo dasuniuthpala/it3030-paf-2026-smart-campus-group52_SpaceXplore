@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import logoImage from './images/logo.png';
+import API_BASE_URL from './apiConfig';
 
 function Bookings() {
   const navigate = useNavigate();
@@ -52,7 +53,7 @@ function Bookings() {
 
   const fetchBookings = async () => {
     try {
-      const endpoint = user?.role === 'ADMIN' ? 'http://localhost:8080/api/bookings' : 'http://localhost:8080/api/bookings/my';
+      const endpoint = user?.role === 'ADMIN' ? `${API_BASE_URL}/api/bookings` : `${API_BASE_URL}/api/bookings/my`;
       const response = await fetch(endpoint, { headers: getHeaders() });
       if (!response.ok) {
         throw new Error('Could not load bookings');
@@ -85,7 +86,7 @@ function Bookings() {
     }
 
     try {
-      const response = await fetch('http://localhost:8080/api/bookings', {
+      const response = await fetch(`${API_BASE_URL}/api/bookings`, {
         method: 'POST',
         headers: getHeaders(),
         body: JSON.stringify({
@@ -115,7 +116,7 @@ function Bookings() {
     setError('');
     setMessage('');
     try {
-      let url = `http://localhost:8080/api/bookings/${id}/${actionType}`;
+      let url = `${API_BASE_URL}/api/bookings/${id}/${actionType}`;
       const body = actionType === 'cancel' ? null : JSON.stringify({ reason: actionType === 'approve' ? 'Auto-approved' : 'Rejected by admin' });
 
       const method = 'PUT';
