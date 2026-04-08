@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ThemeToggle from './ThemeToggle';
 import logoImage from './images/logo.png';
+import API_BASE_URL from './apiConfig';
 
 function AdminDashboard() {
   const navigate = useNavigate();
@@ -39,7 +40,7 @@ function AdminDashboard() {
 
   const fetchResources = async () => {
      try {
-        const response = await fetch('http://localhost:8080/api/resources');
+        const response = await fetch(`${API_BASE_URL}/api/resources`);
         const data = await response.json();
         setResources(data);
      } catch (err) {
@@ -82,7 +83,7 @@ function AdminDashboard() {
   const handleDeleteRoom = async (id) => {
     if(!window.confirm('Are you sure you want to logically delete this resource? This cannot be undone.')) return;
     try {
-        const response = await fetch(`http://localhost:8080/api/resources/${id}`, { method: 'DELETE' });
+        const response = await fetch(`${API_BASE_URL}/api/resources/${id}`, { method: 'DELETE' });
         if (!response.ok) throw new Error('Failed to delete resource');
         fetchResources();
     } catch (err) {
@@ -96,7 +97,7 @@ function AdminDashboard() {
     
     // If editingRoomId is set, we use PUT, else we use POST to create
     const method = editingRoomId ? 'PUT' : 'POST';
-    const url = editingRoomId ? `http://localhost:8080/api/resources/${editingRoomId}` : 'http://localhost:8080/api/resources';
+    const url = editingRoomId ? `${API_BASE_URL}/api/resources/${editingRoomId}` : `${API_BASE_URL}/api/resources`;
 
     try {
       const response = await fetch(url, {
