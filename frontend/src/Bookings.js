@@ -129,8 +129,13 @@ function Bookings() {
         throw new Error(errorData.message || `Failed to ${actionType}`);
       }
 
-      setMessage(`Booking ${actionType}d`);
-      fetchBookings();
+      const pastTense = actionType === 'cancel' ? 'canceled' : actionType + 'd';
+      setMessage(`Booking ${pastTense.charAt(0).toUpperCase() + pastTense.slice(1)}`);
+      if (actionType === 'cancel') {
+        setBookings(prev => prev.filter(b => b.id !== id));
+      } else {
+        fetchBookings();
+      }
     } catch (err) {
       setError(err.message || 'Action failed');
     }
@@ -210,7 +215,7 @@ function Bookings() {
                     </div>
                   )}
 
-                  {(user?.role !== 'ADMIN' && b.status === 'APPROVED') && (
+                  {b.requestedByUserId === user?.id && b.status !== 'CANCELLED' && (
                     <button onClick={() => actionBooking(b.id, 'cancel')} className="mt-2 rounded-md bg-orange-500 px-3 py-1 text-xs text-white">Cancel</button>
                   )}
                 </div>
