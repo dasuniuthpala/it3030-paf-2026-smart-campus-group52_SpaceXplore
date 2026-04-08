@@ -2,21 +2,63 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ThemeToggle from './ThemeToggle';
 import logoImage from './images/logo.png';
+import API_BASE_URL from './apiConfig';
 
 function Dashboard() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [bookings, setBookings] = useState([]);
+  const [bookingsLoading, setBookingsLoading] = useState(false);
 
   useEffect(() => {
     // Check auth
     const storedUser = localStorage.getItem('user');
     if (!storedUser) {
-        setUser({ firstName: 'Alex', lastName: 'Parker', role: 'Student', email: 'alex.parker@student.spacexplore.edu' });
-    } else {
-        setUser(JSON.parse(storedUser));
+      navigate('/login');
+      return;
     }
-  }, []);
+    const parsed = JSON.parse(storedUser);
+    if (!parsed.id) {
+      navigate('/login');
+      return;
+    }
+    setUser(parsed);
+  }, [navigate]);
+
+  useEffect(() => {
+    if (activeTab === 'bookings' && user) {
+      fetchBookings();
+    }
+  }, [activeTab, user]);
+
+  const fetchBookings = async () => {
+    if (!user || !user.id) {
+      console.error('User not logged in or invalid user data');
+      return;
+    }
+    setBookingsLoading(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/bookings/my`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'X-User-Id': user.id.toString(),
+          'X-User-Email': user.email,
+          'X-User-Role': user.role || 'USER'
+        }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setBookings(data);
+      } else {
+        console.error('Failed to fetch bookings');
+      }
+    } catch (err) {
+      console.error('Error fetching bookings:', err);
+    } finally {
+      setBookingsLoading(false);
+    }
+  };
 
   const handleLogout = () => {
     localStorage.removeItem('user');
@@ -486,16 +528,81 @@ function Dashboard() {
              </div>
           )}
 
-          {/* TAB: BOOKINGS (Placeholder) */}
+          {/* TAB: BOOKINGS */}
           {activeTab === 'bookings' && (
-             <div className="h-64 flex flex-col items-center justify-center text-center">
-                 <div className="w-20 h-20 mb-6 bg-indigo-50 dark:bg-indigo-500/10 rounded-full flex items-center justify-center">
-                    <svg className="w-10 h-10 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                 </div>
-                 <h2 className="text-2xl font-black mb-2 text-slate-800 dark:text-white">My Reservations</h2>
-                 <p className="text-slate-500 max-w-md">Your future bookings will appear here once you reserve a smart space or laboratory.</p>
-                 <button onClick={() => navigate('/resources')} className="mt-8 bg-indigo-600 text-white font-bold py-3 px-6 rounded-xl hover:bg-indigo-700 transition shadow-lg shadow-indigo-600/30">Browse Facilities</button>
-             </div>
+            <div className="space-y-6">
+              <div className="flex justify-between items-center">
+                <h2 className="text-2xl font-black text-slate-800 dark:text-white">My Bookings</h2>
+                <button onClick={() => navigate('/resources')} className="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 transition shadow-lg shadow-indigo-600/30 text-sm">
+                  Book New Space
+                </button>
+              </div>
+
+              {bookingsLoading ? (
+                <div className="flex justify-center py-12">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+                </div>
+              ) : bookings.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="w-20 h-20 mb-6 bg-indigo-50 dark:bg-indigo-500/10 rounded-full flex items-center justify-center mx-auto">
+                    <svg className="w-10 h-10 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-bold mb-2 text-slate-800 dark:text-white">No Bookings Yet</h3>
+                  <p className="text-slate-500 max-w-md mx-auto mb-6">Your future bookings will appear here once you reserve a smart space or laboratory.</p>
+                  <button onClick={() => navigate('/resources')} className="bg-indigo-600 text-white font-bold py-3 px-6 rounded-xl hover:bg-indigo-700 transition shadow-lg shadow-indigo-600/30">
+                    Browse Facilities
+                  </button>
+                </div>
+              ) : (
+                <div className="grid gap-4">
+                  {bookings.map((booking) => (
+                    <div key={booking.id} className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-slate-200 dark:border-slate-700">
+                      <div className="flex justify-between items-start mb-4">
+                        <div>
+                          <h3 className="font-bold text-lg text-slate-800 dark:text-white">{booking.resourceName}</h3>
+                          <p className="text-sm text-slate-600 dark:text-slate-400">{booking.purpose}</p>
+                        </div>
+                        <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                          booking.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400' :
+                          booking.status === 'APPROVED' ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400' :
+                          booking.status === 'REJECTED' ? 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400' :
+                          'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400'
+                        }`}>
+                          {booking.status}
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                        <div>
+                          <p className="text-slate-500 dark:text-slate-400 font-medium">Date</p>
+                          <p className="text-slate-800 dark:text-white font-semibold">{new Date(booking.date).toLocaleDateString()}</p>
+                        </div>
+                        <div>
+                          <p className="text-slate-500 dark:text-slate-400 font-medium">Time</p>
+                          <p className="text-slate-800 dark:text-white font-semibold">{booking.startTime} - {booking.endTime}</p>
+                        </div>
+                        <div>
+                          <p className="text-slate-500 dark:text-slate-400 font-medium">Attendees</p>
+                          <p className="text-slate-800 dark:text-white font-semibold">{booking.attendees}</p>
+                        </div>
+                        <div>
+                          <p className="text-slate-500 dark:text-slate-400 font-medium">Status</p>
+                          <p className="text-slate-800 dark:text-white font-semibold">{booking.status}</p>
+                        </div>
+                      </div>
+                      {booking.decisionReason && (
+                        <div className="mt-4 p-3 bg-slate-50 dark:bg-slate-900/50 rounded-lg">
+                          <p className="text-sm text-slate-600 dark:text-slate-400">
+                            <span className="font-medium">Decision Reason:</span> {booking.decisionReason}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           )}
 
         </div>
