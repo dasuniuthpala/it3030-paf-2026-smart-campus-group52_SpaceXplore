@@ -10,6 +10,8 @@ function Dashboard() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [bookings, setBookings] = useState([]);
   const [bookingsLoading, setBookingsLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
 
   useEffect(() => {
     // Check auth
@@ -57,6 +59,40 @@ function Dashboard() {
       console.error('Error fetching bookings:', err);
     } finally {
       setBookingsLoading(false);
+    }
+  };
+
+  const actionBooking = async (id, actionType) => {
+    setError('');
+    setMessage('');
+    try {
+      let url = `${API_BASE_URL}/api/bookings/${id}/${actionType}`;
+      const body = actionType === 'cancel' ? null : JSON.stringify({ reason: actionType === 'approve' ? 'Auto-approved' : 'Rejected by admin' });
+
+      const method = 'PUT';
+      const options = { method, headers: {
+        'Content-Type': 'application/json',
+        'X-User-Id': user.id.toString(),
+        'X-User-Email': user.email,
+        'X-User-Role': user.role || 'USER'
+      } };
+      if (body) options.body = body;
+
+      const response = await fetch(url, options);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || `Failed to ${actionType}`);
+      }
+
+      const pastTense = actionType === 'cancel' ? 'canceled' : actionType + 'd';
+      setMessage(`Booking ${pastTense.charAt(0).toUpperCase() + pastTense.slice(1)}`);
+      if (actionType === 'cancel') {
+        setBookings(prev => prev.filter(b => b.id !== id));
+      } else {
+        fetchBookings();
+      }
+    } catch (err) {
+      setError(err.message || 'Action failed');
     }
   };
 
@@ -538,6 +574,9 @@ function Dashboard() {
                 </button>
               </div>
 
+              {error && <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-600 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">{error}</div>}
+              {message && <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700 dark:border-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-400">{message}</div>}
+
               {bookingsLoading ? (
                 <div className="flex justify-center py-12">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
@@ -596,6 +635,13 @@ function Dashboard() {
                           <p className="text-sm text-slate-600 dark:text-slate-400">
                             <span className="font-medium">Decision Reason:</span> {booking.decisionReason}
                           </p>
+                        </div>
+                      )}
+                      {booking.status !== 'CANCELLED' && (
+                        <div className="mt-4 flex justify-end">
+                          <button onClick={() => actionBooking(booking.id, 'cancel')} className="rounded-md bg-orange-500 px-4 py-2 text-sm font-semibold text-white hover:bg-orange-600 transition-colors">
+                            Cancel Booking
+                          </button>
                         </div>
                       )}
                     </div>
