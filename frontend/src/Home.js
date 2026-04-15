@@ -40,8 +40,22 @@ function Home() {
            <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 3v1.5M4.5 8.25H3m18 0h-1.5M5.25 12h13.5m-13.5 3.75h13.5m-6.75 3.75h3" />
         </svg>
       )
+    },
+    {
+      id: 3,
+      title: 'Incident Tickets',
+      desc: 'Report issues, track maintenance, and manage incident resolutions in real-time.',
+      icon: (
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} className="w-5 h-5">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5zm6-10.125a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.294 6.336a6.721 6.721 0 01-3.17.789 6.721 6.721 0 01-3.168-.789 3.376 3.376 0 016.338 0z" />
+        </svg>
+      )
     }
   ];
+
+  // Check if user is logged in
+  const isLoggedIn = localStorage.getItem('token') || localStorage.getItem('userRole');
+  const userName = localStorage.getItem('userName') || 'User';
 
   return (
     <div className="flex h-screen w-full overflow-hidden bg-slate-100 text-slate-800 transition-colors duration-500 dark:bg-black dark:text-slate-100 font-sans selection:bg-indigo-500/30">
@@ -62,14 +76,20 @@ function Home() {
             {capabilities.map((item) => (
               <button
                 key={item.id}
-                onClick={() => setActiveTab(item.id)}
+                onClick={() => {
+                  setActiveTab(item.id);
+                  if (item.id === 0) {
+                    navigate('/bookings');
+                  } else if (item.id === 3) {
+                    navigate('/tickets');
+                  }
+                }}
                 className={`group relative flex flex-row items-center md:items-start gap-4 rounded-2xl p-3 md:p-4 text-left transition-all duration-500 overflow-hidden ${
                   activeTab === item.id
                     ? 'border-transparent shadow-[0_10px_30px_-10px_rgba(99,102,241,0.3)] bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-500/20 dark:to-purple-500/10'
                     : 'border-transparent hover:bg-slate-50 dark:hover:bg-white/5'
                 }`}
               >
-                {/* Visual Active Indicator overlay */}
                 {activeTab === item.id && (
                   <div className="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-indigo-500 to-purple-500 dark:from-indigo-400 dark:to-purple-500"></div>
                 )}
@@ -96,9 +116,23 @@ function Home() {
             ))}
           </div>
 
-          {/* Quick Actions (Sidebar bottom) */}
+          {/* Quick Actions (Sidebar bottom) - TICKET LINKS ONLY HERE */}
           <div className="mt-auto hidden md:flex flex-col gap-3 border-t border-slate-200/50 dark:border-white/5 pt-6 px-2">
-             <button onClick={() => navigate('/resources')} className="w-full rounded-xl bg-slate-900 py-3.5 text-xs font-bold text-white shadow-lg transition-all hover:scale-[1.02] hover:bg-indigo-600 dark:bg-white dark:text-slate-900 dark:hover:bg-indigo-400">Launch Catalogue</button>
+             <button onClick={() => navigate('/resources')} className="w-full rounded-xl bg-slate-900 py-3.5 text-xs font-bold text-white shadow-lg transition-all hover:scale-[1.02] hover:bg-indigo-600 dark:bg-white dark:text-slate-900 dark:hover:bg-indigo-400">
+               Launch Catalogue
+             </button>
+             
+             {/* Ticket buttons - ONLY show when logged in */}
+             {isLoggedIn && (
+               <>
+                 <button onClick={() => navigate('/tickets/create')} className="w-full rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 py-3.5 text-xs font-bold text-white shadow-lg transition-all hover:scale-[1.02]">
+                   ⚡ Report Incident
+                 </button>
+                 <button onClick={() => navigate('/tickets')} className="w-full rounded-xl border border-indigo-200 bg-transparent py-3.5 text-xs font-bold text-indigo-600 transition-all hover:bg-indigo-50 dark:border-indigo-800 dark:text-indigo-400 dark:hover:bg-indigo-950/50">
+                   🎫 My Tickets
+                 </button>
+               </>
+             )}
           </div>
         </div>
       </aside>
@@ -110,12 +144,11 @@ function Home() {
         {/* Absolute Background Image Layer */}
         <div className="absolute inset-0 z-0">
            <img src={heroImage} alt="Futuristic Hub" className="h-full w-full object-cover transition-transform duration-[20s] ease-out scale-100 hover:scale-110" />
-           {/* Complex Gradient Overlays for readability and mood */}
            <div className="absolute inset-0 bg-gradient-to-r from-slate-50/90 via-slate-50/50 to-transparent dark:from-black/90 dark:via-black/60 dark:to-black/30"></div>
            <div className="absolute inset-0 bg-gradient-to-t from-slate-100/90 via-transparent to-transparent dark:from-black dark:via-transparent to-transparent"></div>
         </div>
         
-        {/* Top Navbar overlapping the Hero */}
+        {/* Top Navbar - NO TICKET LINKS HERE */}
         <nav className="relative z-30 flex h-[88px] items-center justify-end px-8 border-b border-transparent dark:border-white/5 transition-colors">
           <div className="flex items-center gap-4 rounded-full bg-white/40 border border-white/40 dark:bg-black/40 dark:border-white/10 backdrop-blur-xl px-2 py-2 pr-6">
             
@@ -123,10 +156,31 @@ function Home() {
             <ThemeToggle />
 
             <div className="h-5 w-px bg-slate-300 dark:bg-slate-700 mx-2"></div>
-
-            <button onClick={() => navigate('/login')} className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 transition-colors hover:text-indigo-600 dark:hover:text-indigo-400">
-              Sign In
-            </button>
+            
+            {/* Show different buttons based on login status */}
+            {isLoggedIn ? (
+              <>
+                <button 
+                  onClick={() => {
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('userRole');
+                    localStorage.removeItem('userName');
+                    navigate('/');
+                    window.location.reload();
+                  }} 
+                  className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 transition-colors hover:text-red-600"
+                >
+                  Logout
+                </button>
+                <span className="text-xs text-slate-500 ml-2">
+                  👤 {userName}
+                </span>
+              </>
+            ) : (
+              <button onClick={() => navigate('/login')} className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 transition-colors hover:text-indigo-600 dark:hover:text-indigo-400">
+                Sign In
+              </button>
+            )}
           </div>
         </nav>
 
@@ -173,7 +227,6 @@ function Home() {
                  </span>
                </button>
 
-               {/* Quick Info card floating in hero */}
                <div className="hidden lg:flex items-center gap-5 rounded-2xl border border-slate-200/50 bg-white/40 p-4 backdrop-blur-xl dark:border-white/10 dark:bg-slate-900/40 shadow-xl">
                   <div className="flex -space-x-4">
                      <div className="flex overflow-hidden rounded-full border-2 border-white dark:border-slate-800">

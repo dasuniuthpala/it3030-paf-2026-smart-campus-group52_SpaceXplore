@@ -38,6 +38,8 @@ function Login() {
         const data = await response.json();
         localStorage.setItem('user', JSON.stringify(data));
         localStorage.setItem('token', data.token || '');
+
+
         navigate('/dashboard');
       } else {
         const errorData = await response.json();
