@@ -99,7 +99,6 @@ function Home() {
           {/* Quick Actions (Sidebar bottom) */}
           <div className="mt-auto hidden md:flex flex-col gap-3 border-t border-slate-200/50 dark:border-white/5 pt-6 px-2">
              <button onClick={() => navigate('/resources')} className="w-full rounded-xl bg-slate-900 py-3.5 text-xs font-bold text-white shadow-lg transition-all hover:scale-[1.02] hover:bg-indigo-600 dark:bg-white dark:text-slate-900 dark:hover:bg-indigo-400">Launch Catalogue</button>
-             <button onClick={() => navigate('/bookings')} className="w-full rounded-xl border-2 border-slate-200 bg-transparent py-3.5 text-xs font-bold text-slate-600 transition-all hover:border-indigo-500 hover:text-indigo-600 dark:border-white/10 dark:text-slate-300 dark:hover:border-indigo-400 dark:hover:text-indigo-400">View Active Bookings</button>
           </div>
         </div>
       </aside>

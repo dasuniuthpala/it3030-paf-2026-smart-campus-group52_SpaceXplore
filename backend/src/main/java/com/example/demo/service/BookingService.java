@@ -71,13 +71,16 @@ public class BookingService {
     }
 
     public List<BookingResponse> getMyBookings(Long userId) {
-        return bookingRepository.findByRequestedByUserId(userId).stream().map(this::map).collect(Collectors.toList());
+        return bookingRepository.findByRequestedByUserId(userId).stream()
+                .filter(b -> !b.getStatus().name().equals("CANCELLED"))
+                .map(this::map).collect(Collectors.toList());
     }
 
     public List<BookingResponse> getAllBookings(Optional<String> resourceNameOpt, Optional<String> statusOpt, Optional<LocalDate> dateOpt) {
         List<Booking> all = bookingRepository.findAll();
 
         return all.stream()
+                .filter(booking -> !booking.getStatus().name().equals("CANCELLED"))
                 .filter(booking -> resourceNameOpt.map(p -> booking.getResourceName().toLowerCase().contains(p.toLowerCase())).orElse(true))
                 .filter(booking -> statusOpt.map(s -> booking.getStatus().name().equalsIgnoreCase(s)).orElse(true))
                 .filter(booking -> dateOpt.map(d -> booking.getDate().equals(d)).orElse(true))
@@ -120,8 +123,8 @@ public class BookingService {
     public BookingResponse cancelBooking(Long bookingId, Long userId) {
         Booking existing = bookingRepository.findById(bookingId).orElseThrow(() -> new RuntimeException("Booking not found"));
 
-        if (existing.getStatus() != BookingStatus.APPROVED) {
-            throw new RuntimeException("Only approved bookings can be cancelled");
+        if (existing.getStatus() == BookingStatus.CANCELLED) {
+            throw new RuntimeException("Booking is already cancelled");
         }
 
         if (!existing.getRequestedByUserId().equals(userId)) {
