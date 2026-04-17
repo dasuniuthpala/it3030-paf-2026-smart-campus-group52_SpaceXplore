@@ -1,10 +1,11 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import ThemeToggle from './ThemeToggle';
 import logoImage from './images/logo.png';
 import API_BASE_URL from './apiConfig';
 
 function ResourceCataloguePage() {
+  const navigate = useNavigate();
   const [resources, setResources] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState('ALL');
@@ -283,7 +284,8 @@ function ResourceCataloguePage() {
                       </div>
                       
                       <div className="mt-5 pt-4 border-t border-slate-700/50">
-                        <button 
+                       <button 
+                           onClick={() => navigate('/bookings', { state: { preSelectedResource: resource.resourceName }})}
                            disabled={resource.status !== 'ACTIVE'}
                            className={`w-full rounded-xl py-3 px-4 text-sm font-bold shadow-lg transition-all 
                            ${resource.status === 'ACTIVE' 

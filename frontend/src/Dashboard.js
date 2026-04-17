@@ -7,6 +7,7 @@ function Dashboard() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [showNotifications, setShowNotifications] = useState(false);
 
   useEffect(() => {
     // Check auth
@@ -109,10 +110,36 @@ function Dashboard() {
              
              <ThemeToggle />
 
-             <button className="relative p-2 text-slate-400 hover:text-indigo-600 transition-colors">
-               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
-               <span className="absolute top-2 right-2.5 h-2 w-2 rounded-full bg-emerald-500 ring-2 ring-[#f4f7fe] dark:ring-slate-950"></span>
-             </button>
+             <div className="relative">
+               <button 
+                 onClick={() => setShowNotifications(!showNotifications)}
+                 className="relative p-2 text-slate-400 hover:text-indigo-600 transition-colors"
+               >
+                 <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+                 <span className="absolute top-2 right-2.5 h-2 w-2 rounded-full bg-emerald-500 ring-2 ring-[#f4f7fe] dark:ring-slate-950"></span>
+               </button>
+
+               {showNotifications && (
+                 <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700 overflow-hidden z-50 animate-fade-in-up">
+                    <div className="p-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-900/50">
+                       <h3 className="font-bold text-slate-800 dark:text-white">Notifications</h3>
+                       <button onClick={() => setShowNotifications(false)} className="text-xs text-indigo-500 font-semibold hover:text-indigo-600">Close</button>
+                    </div>
+                    <div className="max-h-80 overflow-y-auto">
+                       <div className="p-4 border-b border-slate-100 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-700/30 cursor-pointer transition-colors block">
+                          <p className="text-sm font-bold text-slate-800 dark:text-white mb-1">Booking Approved</p>
+                          <p className="text-xs text-slate-500 dark:text-slate-400">Your reservation for Smart Lab F1205 has been approved.</p>
+                          <p className="text-[10px] text-slate-400 mt-2">2 hours ago</p>
+                       </div>
+                       <div className="p-4 border-b border-slate-100 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-700/30 cursor-pointer transition-colors block">
+                          <p className="text-sm font-bold text-slate-800 dark:text-white mb-1">System Update</p>
+                          <p className="text-xs text-slate-500 dark:text-slate-400">SpaceXplore will undergo scheduled maintenance at 2 AM.</p>
+                          <p className="text-[10px] text-slate-400 mt-2">5 hours ago</p>
+                       </div>
+                    </div>
+                 </div>
+               )}
+             </div>
 
              <div className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => setActiveTab('profile')}>
                 <div className="w-10 h-10 rounded-full bg-indigo-100 overflow-hidden border-2 border-white shadow-sm dark:border-slate-800">

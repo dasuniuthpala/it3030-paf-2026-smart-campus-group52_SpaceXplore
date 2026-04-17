@@ -6,7 +6,6 @@ import logoImage from './images/logo.png';
 
 function Home() {
   const navigate = useNavigate();
-  const [isDarkMode, setIsDarkMode] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
 
   const capabilities = [

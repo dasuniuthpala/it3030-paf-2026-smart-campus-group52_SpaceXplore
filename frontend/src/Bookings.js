@@ -1,14 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import logoImage from './images/logo.png';
 import API_BASE_URL from './apiConfig';
 
 function Bookings() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const initialResource = location.state?.preSelectedResource || 'Study Room A1';
+
   const [user, setUser] = useState(null);
   const [bookings, setBookings] = useState([]);
   const [form, setForm] = useState({
-    resourceName: 'Study Room A1',
+    resourceName: initialResource,
     date: '',
     startTime: '',
     endTime: '',
@@ -42,6 +45,7 @@ function Bookings() {
   useEffect(() => {
     if (!user) return;
     fetchBookings();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const getHeaders = () => ({
