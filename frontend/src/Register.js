@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import ThemeToggle from './ThemeToggle';
 import logoImage from './images/logo.png';
-import heroImage from './images/hero_smart_campus.png';
 import API_BASE_URL from './apiConfig';
 
 function Register() {

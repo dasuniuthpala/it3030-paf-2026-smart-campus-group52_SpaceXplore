@@ -8,10 +8,26 @@ function Dashboard() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [activeTab, setActiveTab] = useState('dashboard');
+<<<<<<< HEAD
   const [bookings, setBookings] = useState([]);
   const [bookingsLoading, setBookingsLoading] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
+=======
+  const [showNotifications, setShowNotifications] = useState(false);
+
+  // Calendar State
+  const [currentDate, setCurrentDate] = useState(new Date());
+  
+  const handlePrevMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
+  const handleNextMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
+
+  const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  const firstDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay();
+  const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
+  const daysArray = Array(firstDay).fill(null).concat([...Array(daysInMonth).keys()].map(i => i + 1));
+  const today = new Date();
+>>>>>>> dasuni
 
   useEffect(() => {
     // Check auth
@@ -187,10 +203,36 @@ function Dashboard() {
              
              <ThemeToggle />
 
-             <button className="relative p-2 text-slate-400 hover:text-indigo-600 transition-colors">
-               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
-               <span className="absolute top-2 right-2.5 h-2 w-2 rounded-full bg-emerald-500 ring-2 ring-[#f4f7fe] dark:ring-slate-950"></span>
-             </button>
+             <div className="relative">
+               <button 
+                 onClick={() => setShowNotifications(!showNotifications)}
+                 className="relative p-2 text-slate-400 hover:text-indigo-600 transition-colors"
+               >
+                 <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+                 <span className="absolute top-2 right-2.5 h-2 w-2 rounded-full bg-emerald-500 ring-2 ring-[#f4f7fe] dark:ring-slate-950"></span>
+               </button>
+
+               {showNotifications && (
+                 <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700 overflow-hidden z-50 animate-fade-in-up">
+                    <div className="p-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-900/50">
+                       <h3 className="font-bold text-slate-800 dark:text-white">Notifications</h3>
+                       <button onClick={() => setShowNotifications(false)} className="text-xs text-indigo-500 font-semibold hover:text-indigo-600">Close</button>
+                    </div>
+                    <div className="max-h-80 overflow-y-auto">
+                       <div className="p-4 border-b border-slate-100 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-700/30 cursor-pointer transition-colors block">
+                          <p className="text-sm font-bold text-slate-800 dark:text-white mb-1">Booking Approved</p>
+                          <p className="text-xs text-slate-500 dark:text-slate-400">Your reservation for Smart Lab F1205 has been approved.</p>
+                          <p className="text-[10px] text-slate-400 mt-2">2 hours ago</p>
+                       </div>
+                       <div className="p-4 border-b border-slate-100 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-700/30 cursor-pointer transition-colors block">
+                          <p className="text-sm font-bold text-slate-800 dark:text-white mb-1">System Update</p>
+                          <p className="text-xs text-slate-500 dark:text-slate-400">SpaceXplore will undergo scheduled maintenance at 2 AM.</p>
+                          <p className="text-[10px] text-slate-400 mt-2">5 hours ago</p>
+                       </div>
+                    </div>
+                 </div>
+               )}
+             </div>
 
              <div className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => setActiveTab('profile')}>
                 <div className="w-10 h-10 rounded-full bg-indigo-100 overflow-hidden border-2 border-white shadow-sm dark:border-slate-800">
@@ -261,21 +303,26 @@ function Dashboard() {
                      <div className="grid md:grid-cols-2 gap-4">
                        {/* Calendar visual mock */}
                        <div className="bg-white dark:bg-slate-800 rounded-[1.25rem] p-6 shadow-[0_2px_10px_rgba(0,0,0,0.02)] flex flex-col border border-slate-100 dark:border-slate-700/50">
-                          <div className="flex justify-between items-center mb-4">
-                             <button className="text-slate-400"><svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg></button>
-                             <h4 className="font-bold text-[#2b2b4f] dark:text-white text-sm">March 2026</h4>
-                             <button className="text-slate-400"><svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg></button>
-                          </div>
-                          <div className="grid grid-cols-7 text-center text-xs font-semibold text-slate-400 mb-2">
-                             <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
-                          </div>
-                          <div className="grid grid-cols-7 text-center text-sm font-medium gap-y-2 text-[#2b2b4f] dark:text-slate-200">
-                             <div className="text-slate-300 dark:text-slate-600">26</div><div className="text-slate-300 dark:text-slate-600">27</div><div className="text-slate-300 dark:text-slate-600">28</div><div className="text-slate-300 dark:text-slate-600">1</div><div>2</div><div>3</div><div>4</div>
-                             <div>5</div><div>6</div><div className="bg-indigo-600 text-white w-7 h-7 mx-auto rounded-full flex items-center justify-center shadow-md shadow-indigo-500/30">7</div><div>8</div><div>9</div><div>10</div><div>11</div>
-                             <div>12</div><div>13</div><div>14</div><div>15</div><div>16</div><div>17</div><div>18</div>
-                             <div>19</div><div>20</div><div>21</div><div>22</div><div>23</div><div>24</div><div>25</div>
-                          </div>
-                       </div>
+                           <div className="flex justify-between items-center mb-4">
+                              <button onClick={handlePrevMonth} className="text-slate-400 hover:text-indigo-500 transition-colors"><svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg></button>
+                              <h4 className="font-bold text-[#2b2b4f] dark:text-white text-sm">{monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}</h4>
+                              <button onClick={handleNextMonth} className="text-slate-400 hover:text-indigo-500 transition-colors"><svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg></button>
+                           </div>
+                           <div className="grid grid-cols-7 text-center text-xs font-semibold text-slate-400 mb-2">
+                              <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+                           </div>
+                           <div className="grid grid-cols-7 text-center text-sm font-medium gap-y-2 gap-x-1 text-[#2b2b4f] dark:text-slate-200">
+                              {daysArray.map((day, index) => {
+                                if (day === null) return <div key={`empty-${index}`}></div>;
+                                const isToday = day === today.getDate() && currentDate.getMonth() === today.getMonth() && currentDate.getFullYear() === today.getFullYear();
+                                return (
+                                  <div key={`day-${day}`} className={`flex items-center justify-center w-7 h-7 mx-auto rounded-full ${isToday ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/30' : 'hover:bg-slate-100 dark:hover:bg-slate-700/50 cursor-pointer transition-colors'}`}>
+                                    {day}
+                                  </div>
+                                );
+                              })}
+                           </div>
+                        </div>
                        
                        {/* Events list */}
                        <div className="flex flex-col gap-3">

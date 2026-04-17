@@ -6,7 +6,7 @@ import API_BASE_URL from './apiConfig';
 
 function AdminDashboard() {
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
+  const [, setUser] = useState(null);
   const [activeTab, setActiveTab] = useState('dashboard');
 
   // Form state for adding/editing a room
