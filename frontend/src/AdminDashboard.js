@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from './AuthContext';
 import ThemeToggle from './ThemeToggle';
 import logoImage from './images/logo.png';
 import API_BASE_URL from './apiConfig';
+import UserManagementPanel from './UserManagementPanel';
+import BookingManagementPanel from './BookingManagementPanel';
 
 function AdminDashboard() {
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
+  const { user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
 
   // Form state for adding/editing a room
@@ -26,13 +29,6 @@ function AdminDashboard() {
   const [resources, setResources] = useState([]);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (!storedUser) {
-      setUser({ firstName: 'Admin', lastName: 'User', role: 'Administrator' });
-    } else {
-      setUser(JSON.parse(storedUser));
-    }
-
     if (activeTab === 'rooms') {
       fetchResources();
     }
@@ -49,8 +45,7 @@ function AdminDashboard() {
   }
 
   const handleLogout = () => {
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
+    logout();
     navigate('/login');
   };
 
@@ -128,6 +123,7 @@ function AdminDashboard() {
     { id: 'dashboard', name: 'Overview', icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg> },
     { id: 'rooms', name: 'Manage Rooms', icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg> },
     { id: 'maintenance', name: 'Maintenance', icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg> },
+    { id: 'bookings', name: 'Booking Requests', icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg> },
     { id: 'users', name: 'User Directory', icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg> },
   ];
 
@@ -184,6 +180,7 @@ function AdminDashboard() {
               {activeTab === 'dashboard' && 'Admin Overview'}
               {activeTab === 'rooms' && 'Facilities & Assets'}
               {activeTab === 'maintenance' && 'Maintenance Hub'}
+              {activeTab === 'bookings' && 'Booking Management'}
               {activeTab === 'users' && 'User Directory'}
             </h1>
           </div>
@@ -193,11 +190,15 @@ function AdminDashboard() {
 
             <div className="flex items-center gap-3 ml-4 border-l border-slate-200 dark:border-slate-700 pl-6 cursor-pointer">
               <div className="hidden sm:block text-right">
-                <p className="text-sm font-bold text-[#2b2b4f] dark:text-white leading-none">System Admin</p>
-                <p className="text-[10px] font-bold text-indigo-500 mt-1 uppercase tracking-widest">Root Access</p>
+                <p className="text-sm font-bold text-[#2b2b4f] dark:text-white leading-none">
+                  {user ? `${user.firstName} ${user.lastName}` : 'Admin'}
+                </p>
+                <p className="text-[10px] font-bold text-indigo-500 mt-1 uppercase tracking-widest">
+                  {user?.role?.replace('_', ' ') || 'Admin'}
+                </p>
               </div>
-              <div className="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900/50 overflow-hidden border-2 border-indigo-500 shadow-sm flex items-center justify-center font-bold text-indigo-700 dark:text-indigo-300">
-                AD
+              <div className="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900/50 overflow-hidden border-2 border-indigo-500 shadow-sm flex items-center justify-center font-bold text-indigo-700 dark:text-indigo-300 text-sm">
+                {user ? `${(user.firstName||'A')[0]}${(user.lastName||'D')[0]}` : 'AD'}
               </div>
             </div>
           </div>
@@ -380,6 +381,12 @@ function AdminDashboard() {
               </div>
             </div>
           )}
+
+          {/* TAB: BOOKINGS */}
+          {activeTab === 'bookings' && <BookingManagementPanel />}
+
+          {/* TAB: USERS - handled by dedicated UserManagementPanel */}
+          {activeTab === 'users' && <UserManagementPanel />}
 
         </div>
       </main>
