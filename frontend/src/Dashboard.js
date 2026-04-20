@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ThemeToggle from './ThemeToggle';
 import logoImage from './images/logo.png';
@@ -41,13 +41,7 @@ function Dashboard() {
     setUser(parsed);
   }, [navigate]);
 
-  useEffect(() => {
-    if (activeTab === 'bookings' && user) {
-      fetchBookings();
-    }
-  }, [activeTab, user]);
-
-  const fetchBookings = async () => {
+  const fetchBookings = useCallback(async () => {
     if (!user || !user.id) {
       console.error('User not logged in or invalid user data');
       return;
@@ -73,7 +67,13 @@ function Dashboard() {
     } finally {
       setBookingsLoading(false);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    if (activeTab === 'bookings' && user) {
+      fetchBookings();
+    }
+  }, [activeTab, user, fetchBookings]);
 
   const actionBooking = async (id, actionType) => {
     setError('');
