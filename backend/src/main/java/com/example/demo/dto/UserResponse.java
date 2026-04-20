@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import com.example.demo.model.Role;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -13,5 +15,5 @@ public class UserResponse {
     private String lastName;
     private String email;
     private String token;
-    private String role;
+    private Role role;
 }
