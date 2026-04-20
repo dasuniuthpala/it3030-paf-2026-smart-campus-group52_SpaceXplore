@@ -36,7 +36,9 @@ function AdminDashboard() {
 
   const fetchResources = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/resources`);
+      const response = await fetch(`${API_BASE_URL}/api/resources`, {
+        credentials: 'include'
+      });
       const data = await response.json();
       setResources(data);
     } catch (err) {
@@ -78,7 +80,10 @@ function AdminDashboard() {
   const handleDeleteRoom = async (id) => {
     if (!window.confirm('Are you sure you want to logically delete this resource? This cannot be undone.')) return;
     try {
-      const response = await fetch(`${API_BASE_URL}/api/resources/${id}`, { method: 'DELETE' });
+      const response = await fetch(`${API_BASE_URL}/api/resources/${id}`, { 
+        method: 'DELETE',
+        credentials: 'include'
+      });
       if (!response.ok) throw new Error('Failed to delete resource');
       fetchResources();
     } catch (err) {
@@ -100,6 +105,7 @@ function AdminDashboard() {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({
           ...roomForm,
           capacity: parseInt(roomForm.capacity, 10)
