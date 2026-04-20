@@ -18,13 +18,21 @@ public class SecurityConfig {
             // Enable CORS and use the CorsConfigurationSource bean or CorsFilter mapped globally
             .cors(Customizer.withDefaults())
             
-            // Disable CSRF since we are using tokens or headers for auth in a stateless API
+            // Disable CSRF temporarily for testing
             .csrf(AbstractHttpConfigurer::disable)
             
             // Configure endpoint authorization
             .authorizeHttpRequests(auth -> auth
-                // Allow all requests for now, adjust based on your actual auth mechanism
-                .anyRequest().permitAll()
+                // Permit public routes
+                .requestMatchers("/", "/error", "/api/public/**").permitAll()
+                // Require authentication for everything else
+                .anyRequest().authenticated()
+            )
+            
+            // Enable OAuth 2.0 Login
+            .oauth2Login(oauth2 -> oauth2
+                // Redirect to frontend dashboard after success
+                .defaultSuccessUrl("http://localhost:3000/dashboard", true)
             );
 
         return http.build();
