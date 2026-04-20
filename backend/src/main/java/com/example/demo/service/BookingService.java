@@ -66,6 +66,13 @@ public class BookingService {
         return existing.stream().anyMatch(b -> isOverlap(b.getStartTime(), b.getEndTime(), startTime, endTime));
     }
 
+    private boolean hasConflictExcluding(String resourceName, LocalDate date, LocalTime startTime, LocalTime endTime, Long excludeBookingId) {
+        List<Booking> existing = bookingRepository.findByResourceNameAndDateAndStatusIn(resourceName, date, List.of(BookingStatus.PENDING, BookingStatus.APPROVED));
+        return existing.stream()
+                .filter(b -> !b.getId().equals(excludeBookingId))
+                .anyMatch(b -> isOverlap(b.getStartTime(), b.getEndTime(), startTime, endTime));
+    }
+
     private boolean isOverlap(LocalTime existingStart, LocalTime existingEnd, LocalTime newStart, LocalTime newEnd) {
         return newStart.isBefore(existingEnd) && existingStart.isBefore(newEnd);
     }
@@ -95,7 +102,7 @@ public class BookingService {
             throw new RuntimeException("Only pending bookings can be approved");
         }
 
-        if (hasConflict(existing.getResourceName(), existing.getDate(), existing.getStartTime(), existing.getEndTime())) {
+        if (hasConflictExcluding(existing.getResourceName(), existing.getDate(), existing.getStartTime(), existing.getEndTime(), bookingId)) {
             throw new RuntimeException("Booking cannot be approved due to conflict with other approved bookings.");
         }
 
