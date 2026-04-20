@@ -6,6 +6,7 @@ import logoImage from './images/logo.png';
 import API_BASE_URL from './apiConfig';
 import UserManagementPanel from './UserManagementPanel';
 import BookingManagementPanel from './BookingManagementPanel';
+import AdminOverviewPanel from './AdminOverviewPanel';
 
 function AdminDashboard() {
   const navigate = useNavigate();
@@ -214,44 +215,7 @@ function AdminDashboard() {
         <div className="flex-1 overflow-y-auto p-8 pt-6">
 
           {/* TAB: DASHBOARD */}
-          {activeTab === 'dashboard' && (
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-100 dark:border-slate-700">
-                  <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Total Facilities</p>
-                  <h3 className="text-4xl font-black text-[#2b2b4f] dark:text-white mt-2">{resources.length > 0 ? resources.length : '...'}</h3>
-                </div>
-                <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-100 dark:border-slate-700">
-                  <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Active Bookings</p>
-                  <h3 className="text-4xl font-black text-indigo-500 mt-2">112</h3>
-                </div>
-                <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-100 dark:border-slate-700 relative overflow-hidden">
-                  <div className="absolute top-0 right-0 p-4">
-                    <span className="flex h-3 w-3"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span><span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span></span>
-                  </div>
-                  <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Maintenance Alerts</p>
-                  <h3 className="text-4xl font-black text-red-500 mt-2">3</h3>
-                </div>
-              </div>
-              <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-100 dark:border-slate-700">
-                <h4 className="font-bold text-[#2b2b4f] dark:text-white mb-4">Latest System Logs</h4>
-                <ul className="text-sm space-y-3 text-slate-600 dark:text-slate-300">
-                  <li className="flex gap-4">
-                    <span className="text-slate-400 w-24 shrink-0 font-mono text-xs">10:45 AM</span>
-                    <span>User <strong>dasuni</strong> created a booking for <strong>Smart Lab F1205</strong>.</span>
-                  </li>
-                  <li className="flex gap-4">
-                    <span className="text-slate-400 w-24 shrink-0 font-mono text-xs">09:12 AM</span>
-                    <span>Admin updated resource <strong>Computer Lab G605</strong> status.</span>
-                  </li>
-                  <li className="flex gap-4">
-                    <span className="text-slate-400 w-24 shrink-0 font-mono text-xs">08:00 AM</span>
-                    <span className="text-red-500 font-bold">Automatic alert trigger: AC unit fault in Library Main.</span>
-                  </li>
-                </ul>
-              </div>
-            </div>
-          )}
+          {activeTab === 'dashboard' && <AdminOverviewPanel resourcesCount={resources.length} />}
 
           {/* TAB: ADD/EDIT ROOMS (Manage Resources) */}
           {activeTab === 'rooms' && (
