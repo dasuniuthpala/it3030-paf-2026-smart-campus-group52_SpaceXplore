@@ -3,9 +3,11 @@ package com.example.demo.service;
 import com.example.demo.dto.LoginRequest;
 import com.example.demo.dto.RegisterRequest;
 import com.example.demo.dto.UserResponse;
+import com.example.demo.model.Role;
 import com.example.demo.model.User;
 import com.example.demo.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -14,6 +16,9 @@ import java.util.Optional;
 public class AuthService {
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     public UserResponse register(RegisterRequest request) {
         System.out.println("Attempting to register: " + request.getEmail());
@@ -28,11 +33,11 @@ public class AuthService {
         user.setFirstName(request.getFirstName());
         user.setLastName(request.getLastName());
         user.setEmail(request.getEmail());
-        user.setPassword(hashPassword(request.getPassword()));
-        user.setRole("USER");
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setRole(Role.USER);
 
         if (request.getEmail().toLowerCase().endsWith("@admin.local")) {
-            user.setRole("ADMIN");
+            user.setRole(Role.ADMIN);
         }
 
         User savedUser = userRepository.save(user);
@@ -60,7 +65,7 @@ public class AuthService {
         User user = userOptional.get();
 
         // Verify password
-        if (!verifyPassword(request.getPassword(), user.getPassword())) {
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new RuntimeException("Invalid password");
         }
 
@@ -74,14 +79,6 @@ public class AuthService {
                 generateToken(user),
                 user.getRole()
         );
-    }
-
-    private String hashPassword(String password) {
-        return String.valueOf(password.hashCode());
-    }
-
-    private boolean verifyPassword(String rawPassword, String hashedPassword) {
-        return String.valueOf(rawPassword.hashCode()).equals(hashedPassword);
     }
 
     private String generateToken(User user) {
