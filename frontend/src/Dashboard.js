@@ -8,12 +8,10 @@ function Dashboard() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [activeTab, setActiveTab] = useState('dashboard');
-<<<<<<< HEAD
   const [bookings, setBookings] = useState([]);
   const [bookingsLoading, setBookingsLoading] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
-=======
   const [showNotifications, setShowNotifications] = useState(false);
 
   // Calendar State
@@ -27,7 +25,6 @@ function Dashboard() {
   const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
   const daysArray = Array(firstDay).fill(null).concat([...Array(daysInMonth).keys()].map(i => i + 1));
   const today = new Date();
->>>>>>> dasuni
 
   useEffect(() => {
     // Check auth

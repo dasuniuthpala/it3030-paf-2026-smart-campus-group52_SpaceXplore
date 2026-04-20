@@ -401,7 +401,6 @@ function ResourceCataloguePage() {
                       
                       <div className="mt-5 pt-4 border-t border-slate-700/50">
                        <button 
-                           onClick={() => navigate('/bookings', { state: { preSelectedResource: resource.resourceName }})}
                            disabled={resource.status !== 'ACTIVE'}
                            onClick={() => resource.status === 'ACTIVE' && openBookingModal(resource)}
                            className={`w-full rounded-xl py-3 px-4 text-sm font-bold shadow-lg transition-all 
