@@ -26,9 +26,8 @@ function AdminDashboard() {
   const [resources, setResources] = useState([]);
 
   // Bookings state
-  const [activeSubTab, setActiveSubTab] = useState('pending');
+  const [activeSubTab, setActiveSubTab] = useState('ALL');
   const [bookings, setBookings] = useState([]);
-  const [bookingFilter, setBookingFilter] = useState('ALL');
   const [message, setMessage] = useState(null);
   
 
@@ -58,14 +57,14 @@ function AdminDashboard() {
      }
   }
 
-  const fetchBookings = async () => {
+  const fetchBookings = async (statusParam) => {
      try {
         const headers = {
           'X-User-Role': 'ADMIN',
           'X-User-Id': user?.id?.toString() || '1',
           'X-User-Email': user?.email || 'admin@example.com'
         };
-        const status = activeSubTab === 'pending' ? 'PENDING' : undefined;
+        const status = statusParam || (activeSubTab === 'ALL' ? undefined : activeSubTab);
         const url = status ? `${API_BASE_URL}/api/bookings?status=${status}` : `${API_BASE_URL}/api/bookings`;
         const response = await fetch(url, { headers });
         const data = await response.json();
@@ -304,43 +303,40 @@ function AdminDashboard() {
               {/* Sub-tabs */}
               <div className="flex gap-4 border-b border-slate-200 dark:border-slate-700">
                 <button
-                  onClick={() => { setActiveSubTab('pending'); fetchBookings(); }}
-                  className={`px-4 py-2 font-medium ${activeSubTab === 'pending' ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-slate-600 dark:text-slate-400'}`}
+                  onClick={() => { setActiveSubTab('ALL'); fetchBookings(); }}
+                  className={`px-4 py-2 font-medium ${activeSubTab === 'ALL' ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-slate-600 dark:text-slate-400'}`}
                 >
-                  Pending Approval
+                  All Status
                 </button>
                 <button
-                  onClick={() => { setActiveSubTab('all'); fetchBookings(); }}
-                  className={`px-4 py-2 font-medium ${activeSubTab === 'all' ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-slate-600 dark:text-slate-400'}`}
+                  onClick={() => { setActiveSubTab('PENDING'); fetchBookings('PENDING'); }}
+                  className={`px-4 py-2 font-medium ${activeSubTab === 'PENDING' ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-slate-600 dark:text-slate-400'}`}
                 >
-                  All Bookings
+                  Pending
+                </button>
+                <button
+                  onClick={() => { setActiveSubTab('APPROVED'); fetchBookings('APPROVED'); }}
+                  className={`px-4 py-2 font-medium ${activeSubTab === 'APPROVED' ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-slate-600 dark:text-slate-400'}`}
+                >
+                  Approved
+                </button>
+                <button
+                  onClick={() => { setActiveSubTab('REJECTED'); fetchBookings('REJECTED'); }}
+                  className={`px-4 py-2 font-medium ${activeSubTab === 'REJECTED' ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-slate-600 dark:text-slate-400'}`}
+                >
+                  Rejected
                 </button>
               </div>
 
-              {activeSubTab === 'all' && (
-                <div className="flex gap-2">
-                  {['ALL', 'PENDING', 'APPROVED', 'REJECTED'].map(status => (
-                    <button
-                      key={status}
-                      onClick={() => setBookingFilter(status)}
-                      className={`px-4 py-2 rounded-lg font-medium ${bookingFilter === status ? 'bg-indigo-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}
-                    >
-                      {status === 'ALL' ? 'All Status' : status}
-                    </button>
-                  ))}
-                </div>
-              )}
-
               <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-100 dark:border-slate-700">
                 <h3 className="text-xl font-bold mb-4 text-[#2b2b4f] dark:text-white">
-                  {activeSubTab === 'pending' ? 'Pending Bookings' : 'All Bookings'}
+                  {activeSubTab === 'ALL' ? 'All Bookings' : activeSubTab.charAt(0).toUpperCase() + activeSubTab.slice(1).toLowerCase() + ' Bookings'}
                 </h3>
 
                 {bookings.length === 0 && <p className="text-slate-500">No bookings found.</p>}
 
                 <div className="space-y-4">
                   {bookings
-                    .filter(b => bookingFilter === 'ALL' || b.status.toLowerCase() === bookingFilter.toLowerCase())
                     .map((b) => (
                       <div key={b.id} className="border border-slate-200 dark:border-slate-600 rounded-lg p-4 bg-slate-50 dark:bg-slate-700">
                         <p className="font-bold text-[#2b2b4f] dark:text-white">{b.resourceName} &ndash; {b.date} ({b.startTime} - {b.endTime})</p>
@@ -349,7 +345,7 @@ function AdminDashboard() {
                         <p className="text-xs text-slate-500 dark:text-slate-400">Requested by: {b.requestedByEmail}</p>
                         {b.decisionReason && <p className="text-xs text-slate-500 dark:text-slate-400">Reason: {b.decisionReason}</p>}
 
-                        {activeSubTab === 'pending' && b.status === 'PENDING' && (
+                        {activeSubTab === 'PENDING' && b.status === 'PENDING' && (
                           <div className="mt-3 flex gap-2">
                             <button onClick={() => actionBooking(b.id, 'approve')} className="rounded-md bg-emerald-600 px-4 py-2 text-sm text-white hover:bg-emerald-700">Approve</button>
                             <button onClick={() => actionBooking(b.id, 'reject')} className="rounded-md bg-rose-600 px-4 py-2 text-sm text-white hover:bg-rose-700">Reject</button>
