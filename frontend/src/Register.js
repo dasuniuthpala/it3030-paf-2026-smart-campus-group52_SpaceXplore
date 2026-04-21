@@ -16,6 +16,8 @@ function Register() {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -62,11 +64,16 @@ function Register() {
         alert('Registration successful! Please login now.');
         navigate('/login');
       } else {
-        const errorData = await response.json();
-        setError(errorData.message || 'Registration failed');
+        const contentType = response.headers.get('content-type') || '';
+        if (contentType.includes('application/json')) {
+          const errorData = await response.json();
+          setError(errorData.message || 'Registration failed');
+        } else {
+          setError(`Registration failed (${response.status}). Please try again.`);
+        }
       }
     } catch (err) {
-      setError('An error occurred. Please try again.');
+      setError('Cannot reach server. Make sure backend is running on port 8086.');
       console.error('Registration error:', err);
     } finally {
       setLoading(false);
@@ -164,10 +171,27 @@ function Register() {
                 <div className="relative flex items-center">
                     <svg className="w-5 h-5 absolute left-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
                     <input
-                      type="password" id="password" name="password" value={formData.password} onChange={handleChange}
-                      className="w-full pl-12 pr-4 py-3 bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-sm outline-none transition-all focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 text-slate-900 dark:text-white shadow-sm placeholder:text-slate-400 dark:placeholder:text-slate-600 font-medium tracking-widest"
+                      type={showPassword ? 'text' : 'password'} id="password" name="password" value={formData.password} onChange={handleChange}
+                      className="w-full pl-12 pr-12 py-3 bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-sm outline-none transition-all focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 text-slate-900 dark:text-white shadow-sm placeholder:text-slate-400 dark:placeholder:text-slate-600 font-medium tracking-widest"
                       placeholder="••••••••"
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((prev) => !prev)}
+                      className="absolute right-4 text-slate-400 hover:text-indigo-500 transition-colors"
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showPassword ? (
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 3l18 18M10.585 10.587A2 2 0 0013.414 13.415M9.879 5.093A9.77 9.77 0 0112 4.875c4.478 0 8.268 2.943 9.542 7-1.104 3.508-4.115 6.154-7.846 6.847M6.228 6.228C4.405 7.463 3.028 9.302 2.458 11.875a9.964 9.964 0 002.365 3.935" />
+                        </svg>
+                      ) : (
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2.458 12C3.732 7.943 7.522 5 12 5s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7s-8.268-2.943-9.542-7z" />
+                          <circle cx="12" cy="12" r="3" strokeWidth="1.5" />
+                        </svg>
+                      )}
+                    </button>
                 </div>
               </div>
 
@@ -176,10 +200,27 @@ function Register() {
                 <div className="relative flex items-center">
                     <svg className="w-5 h-5 absolute left-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
                     <input
-                      type="password" id="confirmPassword" name="confirmPassword" value={formData.confirmPassword} onChange={handleChange}
-                      className="w-full pl-12 pr-4 py-3 bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-sm outline-none transition-all focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 text-slate-900 dark:text-white shadow-sm placeholder:text-slate-400 dark:placeholder:text-slate-600 font-medium tracking-widest"
+                      type={showConfirmPassword ? 'text' : 'password'} id="confirmPassword" name="confirmPassword" value={formData.confirmPassword} onChange={handleChange}
+                      className="w-full pl-12 pr-12 py-3 bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-sm outline-none transition-all focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 text-slate-900 dark:text-white shadow-sm placeholder:text-slate-400 dark:placeholder:text-slate-600 font-medium tracking-widest"
                       placeholder="••••••••"
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword((prev) => !prev)}
+                      className="absolute right-4 text-slate-400 hover:text-indigo-500 transition-colors"
+                      aria-label={showConfirmPassword ? 'Hide confirm password' : 'Show confirm password'}
+                    >
+                      {showConfirmPassword ? (
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 3l18 18M10.585 10.587A2 2 0 0013.414 13.415M9.879 5.093A9.77 9.77 0 0112 4.875c4.478 0 8.268 2.943 9.542 7-1.104 3.508-4.115 6.154-7.846 6.847M6.228 6.228C4.405 7.463 3.028 9.302 2.458 11.875a9.964 9.964 0 002.365 3.935" />
+                        </svg>
+                      ) : (
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2.458 12C3.732 7.943 7.522 5 12 5s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7s-8.268-2.943-9.542-7z" />
+                          <circle cx="12" cy="12" r="3" strokeWidth="1.5" />
+                        </svg>
+                      )}
+                    </button>
                 </div>
               </div>
 
