@@ -1,11 +1,10 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import ThemeToggle from './ThemeToggle';
 import logoImage from './images/logo.png';
 import API_BASE_URL from './apiConfig';
 
 function ResourceCataloguePage() {
-  const navigate = useNavigate();
   const [resources, setResources] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState('ALL');
