@@ -23,4 +23,6 @@ public class BookingResponse {
     private String requestedByEmail;
     private BookingStatus status;
     private String decisionReason;
+    private Long createdAt;
+  
 }
