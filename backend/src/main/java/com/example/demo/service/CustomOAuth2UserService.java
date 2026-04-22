@@ -3,6 +3,7 @@ package com.example.demo.service;
 import com.example.demo.model.Role;
 import com.example.demo.model.User;
 import com.example.demo.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
@@ -18,9 +19,12 @@ import java.util.Optional;
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private final UserRepository userRepository;
+    private final String adminEmail;
 
-    public CustomOAuth2UserService(UserRepository userRepository) {
+    public CustomOAuth2UserService(UserRepository userRepository,
+                                   @Value("${app.admin.email:admin@spacexplore.local}") String adminEmail) {
         this.userRepository = userRepository;
+        this.adminEmail = adminEmail;
     }
 
     @Override
@@ -41,6 +45,11 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             user.setLastName(lastName != null ? lastName : "");
             user.setRole(Role.USER);
             user.setPassword(""); // Not used for OAuth2 users
+            userRepository.save(user);
+        }
+
+        if (email != null && email.equalsIgnoreCase(adminEmail) && user.getRole() != Role.SUPER_ADMIN) {
+            user.setRole(Role.SUPER_ADMIN);
             userRepository.save(user);
         }
 
