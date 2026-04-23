@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { CreateTicket, TicketList, TicketDetail } from './components/tickets';
 import ThemeToggle from './ThemeToggle';
 import logoImage from './images/logo.png';
 import API_BASE_URL from './apiConfig';
@@ -8,6 +9,7 @@ function Dashboard() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [selectedTicketId, setSelectedTicketId] = useState(null);
   const [bookings, setBookings] = useState([]);
   const [bookingsLoading, setBookingsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -36,6 +38,11 @@ function Dashboard() {
     const parsed = JSON.parse(storedUser);
     if (!parsed.id) {
       navigate('/login');
+      return;
+    }
+    // Technicians have their own dashboard
+    if (parsed.role === 'TECHNICIAN') {
+      navigate('/technician', { replace: true });
       return;
     }
     setUser(parsed);
@@ -109,6 +116,17 @@ function Dashboard() {
     }
   };
 
+  // Ticket handler functions
+  const handleSelectTicket = (ticketId) => {
+    setSelectedTicketId(ticketId);
+    setActiveTab('ticketDetail');
+  };
+
+  const handleBackToTickets = () => {
+    setSelectedTicketId(null);
+    setActiveTab('myTickets');
+  };
+
   const handleLogout = () => {
     localStorage.removeItem('user');
     localStorage.removeItem('token');
@@ -118,6 +136,9 @@ function Dashboard() {
   const menuItems = [
     { id: 'dashboard', name: 'Dashboard', icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg> },
     { id: 'bookings', name: 'My Bookings', icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg> },
+    // TICKET MANAGEMENT MENU ITEMS
+    { id: 'myTickets', name: 'My Tickets', icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" /></svg> },
+    { id: 'reportIncident', name: 'Report Incident', icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg> },
     { id: 'facilities', name: 'Facilities', icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg> },
     { id: 'profile', name: 'My Profile', icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg> },
     { id: 'settings', name: 'Settings', icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg> },
@@ -141,8 +162,20 @@ function Dashboard() {
               <li key={item.id}>
                 <button
                   onClick={() => {
-                     if (item.id === 'facilities') { navigate('/resources'); return; }
-                     setActiveTab(item.id);
+                    if (item.id === 'facilities') { 
+                      navigate('/resources'); 
+                      return; 
+                    }
+                    if (item.id === 'myTickets') {
+                      setSelectedTicketId(null);
+                      setActiveTab('myTickets');
+                      return;
+                    }
+                    if (item.id === 'reportIncident') {
+                      setActiveTab('reportIncident');
+                      return;
+                    }
+                    setActiveTab(item.id);
                   }}
                   className={`w-full flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-300 ${
                     activeTab === item.id 
@@ -180,10 +213,15 @@ function Dashboard() {
               {activeTab === 'profile' && 'My Profile'}
               {activeTab === 'settings' && 'Account Settings'}
               {activeTab === 'bookings' && 'My Reservations'}
+              {activeTab === 'myTickets' && 'My Tickets'}
+              {activeTab === 'reportIncident' && 'Report an Incident'}
+              {activeTab === 'ticketDetail' && 'Ticket Details'}
             </h1>
             <p className="text-sm text-slate-500 font-medium mt-0.5">
               {activeTab === 'dashboard' 
                   ? new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', weekday: 'long' })
+                  : activeTab === 'myTickets' ? 'View and track your incident reports'
+                  : activeTab === 'reportIncident' ? 'Submit a new maintenance or incident ticket'
                   : 'Manage your space and preferences'}
             </p>
           </div>
@@ -257,7 +295,6 @@ function Dashboard() {
                        <h3 className="text-lg font-bold text-[#2b2b4f] dark:text-white">Progress Overview</h3>
                      </div>
                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        {/* Stat Card 1 */}
                         <div className="bg-white dark:bg-slate-800 rounded-[1.25rem] p-5 shadow-[0_2px_10px_rgba(0,0,0,0.02)] flex flex-col items-center justify-center text-center border border-slate-100 dark:border-slate-700/50">
                            <p className="text-xs font-semibold text-slate-500 mb-4">Upcoming</p>
                            <div className="w-16 h-16 rounded-full border-[3px] border-indigo-500 flex items-center justify-center mb-3 shadow-[0_0_15px_rgba(79,70,229,0.2)]">
@@ -265,7 +302,6 @@ function Dashboard() {
                            </div>
                            <p className="text-[10px] text-slate-400 font-medium">Bookings this week</p>
                         </div>
-                        {/* Stat Card 2 */}
                         <div className="bg-white dark:bg-slate-800 rounded-[1.25rem] p-5 shadow-[0_2px_10px_rgba(0,0,0,0.02)] flex flex-col items-center justify-center text-center border border-slate-100 dark:border-slate-700/50">
                            <p className="text-xs font-semibold text-slate-500 mb-4">Study Hours</p>
                            <div className="w-16 h-16 rounded-full border-[3px] border-purple-500 flex items-center justify-center mb-3 shadow-[0_0_15px_rgba(168,85,247,0.2)]">
@@ -273,7 +309,6 @@ function Dashboard() {
                            </div>
                            <p className="text-[10px] text-slate-400 font-medium">Keep up progress!</p>
                         </div>
-                        {/* Stat Card 3 */}
                         <div className="bg-white dark:bg-slate-800 rounded-[1.25rem] p-5 shadow-[0_2px_10px_rgba(0,0,0,0.02)] flex flex-col items-center justify-center text-center border border-slate-100 dark:border-slate-700/50">
                            <p className="text-xs font-semibold text-slate-500 mb-4">Account Rating</p>
                            <div className="w-16 h-16 rounded-full border-[3px] border-blue-500 flex items-center justify-center mb-3 shadow-[0_0_15px_rgba(59,130,246,0.2)]">
@@ -281,7 +316,6 @@ function Dashboard() {
                            </div>
                            <p className="text-[10px] text-slate-400 font-medium">Excellent standing</p>
                         </div>
-                        {/* Stat Card 4 */}
                         <div className="bg-white dark:bg-slate-800 rounded-[1.25rem] p-5 shadow-[0_2px_10px_rgba(0,0,0,0.02)] flex flex-col items-center justify-center text-center border border-slate-100 dark:border-slate-700/50">
                            <p className="text-xs font-semibold text-slate-500 mb-4">Lab Sessions</p>
                            <div className="w-16 h-16 rounded-full border-[3px] border-emerald-500 flex items-center justify-center mb-3 shadow-[0_0_15px_rgba(16,185,129,0.2)]">
@@ -298,7 +332,6 @@ function Dashboard() {
                        <h3 className="text-lg font-bold text-[#2b2b4f] dark:text-white">Schedule</h3>
                      </div>
                      <div className="grid md:grid-cols-2 gap-4">
-                       {/* Calendar visual mock */}
                        <div className="bg-white dark:bg-slate-800 rounded-[1.25rem] p-6 shadow-[0_2px_10px_rgba(0,0,0,0.02)] flex flex-col border border-slate-100 dark:border-slate-700/50">
                            <div className="flex justify-between items-center mb-4">
                               <button onClick={handlePrevMonth} className="text-slate-400 hover:text-indigo-500 transition-colors"><svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg></button>
@@ -321,7 +354,6 @@ function Dashboard() {
                            </div>
                         </div>
                        
-                       {/* Events list */}
                        <div className="flex flex-col gap-3">
                           <div className="bg-indigo-600 rounded-[1.25rem] p-4 text-white shadow-xl shadow-indigo-600/30 flex gap-4 items-center">
                              <div className="w-12 text-center border-r border-indigo-400/30 pr-4 shrink-0">
@@ -360,7 +392,6 @@ function Dashboard() {
   
                {/* Right Column */}
                <div className="space-y-8">
-                  {/* Upcoming Events */}
                   <section>
                      <div className="flex justify-between items-end mb-4">
                        <h3 className="text-lg font-bold text-[#2b2b4f] dark:text-white">Upcoming Events</h3>
@@ -390,7 +421,6 @@ function Dashboard() {
                      </div>
                   </section>
   
-                  {/* Suggested Facilities */}
                   <section>
                      <div className="flex justify-between items-end mb-4">
                        <h3 className="text-lg font-bold text-[#2b2b4f] dark:text-white">Top Facilities</h3>
@@ -423,10 +453,32 @@ function Dashboard() {
              </div>
           )}
 
+          {/* TAB: MY TICKETS */}
+          {activeTab === 'myTickets' && (
+            <TicketList 
+              userRole={user?.role || 'USER'} 
+              onSelectTicket={handleSelectTicket}
+            />
+          )}
+
+          {/* TAB: REPORT INCIDENT */}
+          {activeTab === 'reportIncident' && (
+            <CreateTicket onTicketCreated={() => setActiveTab('myTickets')} />
+          )}
+
+          {/* TAB: TICKET DETAIL */}
+          {activeTab === 'ticketDetail' && selectedTicketId && (
+            <TicketDetail 
+              ticketId={selectedTicketId}
+              userRole={user?.role || 'USER'}
+              userName={user?.firstName || 'User'}
+              onBack={handleBackToTickets}
+            />
+          )}
+
           {/* TAB: PROFILE */}
           {activeTab === 'profile' && (
              <div className="max-w-4xl mx-auto space-y-8 animate-fade-in-up">
-                {/* Profile Header */}
                 <div className="bg-white dark:bg-slate-800 rounded-[1.25rem] p-8 shadow-[0_2px_15px_rgba(0,0,0,0.02)] border border-slate-100 dark:border-slate-700/50 relative overflow-hidden">
                    <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-r from-indigo-500 to-purple-600"></div>
                    <div className="relative z-10 flex flex-col sm:flex-row items-center sm:items-end gap-6 mt-12 w-full text-center sm:text-left">
@@ -447,7 +499,6 @@ function Dashboard() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                   {/* Personal Info */}
                    <div className="bg-white dark:bg-slate-800 rounded-[1.25rem] p-8 shadow-[0_2px_15px_rgba(0,0,0,0.02)] border border-slate-100 dark:border-slate-700/50">
                       <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-6">Personal Details</h3>
                       <div className="space-y-4">
@@ -473,7 +524,6 @@ function Dashboard() {
                       </button>
                    </div>
                    
-                   {/* Academic Mock */}
                    <div className="bg-white dark:bg-slate-800 rounded-[1.25rem] p-8 shadow-[0_2px_15px_rgba(0,0,0,0.02)] border border-slate-100 dark:border-slate-700/50">
                       <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-6">Academic Program</h3>
                       
@@ -526,7 +576,6 @@ function Dashboard() {
                 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                    
-                   {/* Settings Nav */}
                    <div className="col-span-1">
                       <div className="bg-white dark:bg-slate-800 rounded-[1.25rem] p-4 shadow-[0_2px_15px_rgba(0,0,0,0.02)] border border-slate-100 dark:border-slate-700/50 sticky top-4">
                          <button className="w-full text-left px-4 py-3 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-bold rounded-xl mb-2 text-sm border-l-4 border-indigo-600">
@@ -544,10 +593,8 @@ function Dashboard() {
                       </div>
                    </div>
 
-                   {/* Settings Content */}
                    <div className="col-span-1 md:col-span-2 space-y-8">
                       
-                      {/* Theme Setting */}
                       <div className="bg-white dark:bg-slate-800 rounded-[1.25rem] p-8 shadow-[0_2px_15px_rgba(0,0,0,0.02)] border border-slate-100 dark:border-slate-700/50">
                          <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-6">Appearance</h3>
                          <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-6">Customize how SpaceXplore looks on your device.</p>
@@ -563,7 +610,6 @@ function Dashboard() {
                          </div>
                       </div>
 
-                      {/* Notifications */}
                       <div className="bg-white dark:bg-slate-800 rounded-[1.25rem] p-8 shadow-[0_2px_15px_rgba(0,0,0,0.02)] border border-slate-100 dark:border-slate-700/50">
                          <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-6">Alerts & Notifications</h3>
                          <div className="space-y-4">
