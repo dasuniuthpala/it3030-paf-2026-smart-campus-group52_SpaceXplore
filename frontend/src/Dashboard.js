@@ -40,6 +40,11 @@ function Dashboard() {
       navigate('/login');
       return;
     }
+    // Technicians have their own dashboard
+    if (parsed.role === 'TECHNICIAN') {
+      navigate('/technician', { replace: true });
+      return;
+    }
     setUser(parsed);
   }, [navigate]);
 

@@ -3,6 +3,7 @@ package com.example.demo.controller;
 import com.example.demo.dto.TicketResponseDTO;
 import com.example.demo.model.*;
 import com.example.demo.service.TicketService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -19,33 +20,30 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/tickets")
 @CrossOrigin(origins = "http://localhost:3000")
 public class TicketController {
-    
+
     @Autowired
     private TicketService ticketService;
-    
-    // Helper method to get current user (temporary solution)
-    // In production, replace with your actual authentication
-    private String getCurrentUserEmail() {
-        // TODO: Replace with actual authentication
-        // For now, return a mock user
-        return "user@example.com";
+
+    private String getCurrentUserEmail(HttpServletRequest request) {
+        String email = request.getHeader("X-User-Email");
+        return (email != null && !email.isEmpty()) ? email : "unknown@example.com";
     }
-    
-    private String getCurrentUserName() {
-        // TODO: Replace with actual authentication
-        return "Test User";
+
+    private String getCurrentUserName(HttpServletRequest request) {
+        String name = request.getHeader("X-User-Name");
+        return (name != null && !name.isEmpty()) ? name : "Unknown User";
     }
-    
-    private boolean isAdmin() {
-        // TODO: Replace with actual role check
-        return false;
+
+    private boolean isAdmin(HttpServletRequest request) {
+        String role = request.getHeader("X-User-Role");
+        return "ADMIN".equals(role) || "SUPER_ADMIN".equals(role);
     }
-    
+
     // ========== TICKET CRUD ==========
-    
-    // POST - Create a new ticket (with up to 3 images)
+
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> createTicket(
+            HttpServletRequest request,
             @RequestParam("title") String title,
             @RequestParam("description") String description,
             @RequestParam("priority") String priority,
@@ -54,15 +52,14 @@ public class TicketController {
             @RequestParam(value = "contactEmail", required = false) String contactEmail,
             @RequestParam(value = "contactPhone", required = false) String contactPhone,
             @RequestParam(value = "files", required = false) List<MultipartFile> files) {
-        
+
         try {
-            // Validate priority
             try {
                 TicketPriority.valueOf(priority.toUpperCase());
             } catch (IllegalArgumentException e) {
-                return ResponseEntity.badRequest().body(Map.of("error", "Invalid priority. Use: LOW, MEDIUM, HIGH, URGENT"));
+                return ResponseEntity.badRequest().body(Map.of("error", "Invalid priority. Use: LOW, MEDIUM, HIGH, URGENT, CRITICAL"));
             }
-            
+
             IncidentTicket ticket = new IncidentTicket();
             ticket.setTitle(title);
             ticket.setDescription(description);
@@ -71,190 +68,190 @@ public class TicketController {
             ticket.setResourceLocation(resourceLocation);
             ticket.setContactEmail(contactEmail);
             ticket.setContactPhone(contactPhone);
-            
-            String userEmail = getCurrentUserEmail();
-            
+
+            String userEmail = getCurrentUserEmail(request);
             IncidentTicket created = ticketService.createTicket(ticket, files, userEmail);
-            
+
             Map<String, Object> response = new HashMap<>();
             response.put("message", "Ticket created successfully");
             response.put("ticketId", created.getId());
             response.put("status", created.getStatus().name());
-            
+
             return new ResponseEntity<>(response, HttpStatus.CREATED);
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
-    
-    // GET - Get all tickets (Admin only)
+
     @GetMapping
-    public ResponseEntity<List<TicketResponseDTO>> getAllTickets() {
+    public ResponseEntity<List<TicketResponseDTO>> getAllTickets(HttpServletRequest request) {
+        String userEmail = getCurrentUserEmail(request);
+        boolean admin = isAdmin(request);
+
         List<IncidentTicket> tickets = ticketService.getAllTickets();
-        String userEmail = getCurrentUserEmail();
-        boolean admin = isAdmin();
-        
         List<TicketResponseDTO> responseDTOs = tickets.stream()
-                .map(ticket -> ticketService.convertToResponseDTO(ticket, userEmail, admin))
+                .map(t -> ticketService.convertToResponseDTO(t, userEmail, admin))
                 .collect(Collectors.toList());
-        
+
         return ResponseEntity.ok(responseDTOs);
     }
-    
-    // GET - Get my tickets (logged in user)
+
     @GetMapping("/my")
-    public ResponseEntity<List<TicketResponseDTO>> getMyTickets() {
-        String userEmail = getCurrentUserEmail();
-        boolean admin = isAdmin();
-        
+    public ResponseEntity<List<TicketResponseDTO>> getMyTickets(HttpServletRequest request) {
+        String userEmail = getCurrentUserEmail(request);
+        boolean admin = isAdmin(request);
+
         List<IncidentTicket> tickets = ticketService.getTicketsByUser(userEmail);
-        
         List<TicketResponseDTO> responseDTOs = tickets.stream()
-                .map(ticket -> ticketService.convertToResponseDTO(ticket, userEmail, admin))
+                .map(t -> ticketService.convertToResponseDTO(t, userEmail, admin))
                 .collect(Collectors.toList());
-        
+
         return ResponseEntity.ok(responseDTOs);
     }
-    
-    // GET - Get tickets by status
+
     @GetMapping("/status/{status}")
-    public ResponseEntity<List<TicketResponseDTO>> getTicketsByStatus(@PathVariable String status) {
+    public ResponseEntity<List<TicketResponseDTO>> getTicketsByStatus(
+            HttpServletRequest request,
+            @PathVariable String status) {
         try {
             TicketStatus ticketStatus = TicketStatus.valueOf(status.toUpperCase());
+            String userEmail = getCurrentUserEmail(request);
+            boolean admin = isAdmin(request);
+
             List<IncidentTicket> tickets = ticketService.getTicketsByStatus(ticketStatus);
-            String userEmail = getCurrentUserEmail();
-            boolean admin = isAdmin();
-            
             List<TicketResponseDTO> responseDTOs = tickets.stream()
-                    .map(ticket -> ticketService.convertToResponseDTO(ticket, userEmail, admin))
+                    .map(t -> ticketService.convertToResponseDTO(t, userEmail, admin))
                     .collect(Collectors.toList());
-            
+
             return ResponseEntity.ok(responseDTOs);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().build();
         }
     }
-    
-    // GET - Get tickets assigned to me (technician view)
+
+    // Returns tickets assigned to this technician AND all OPEN unassigned tickets
     @GetMapping("/assigned-to-me")
-    public ResponseEntity<List<TicketResponseDTO>> getTicketsAssignedToMe() {
-        String userName = getCurrentUserName();
-        String userEmail = getCurrentUserEmail();
-        boolean admin = isAdmin();
-        
-        List<IncidentTicket> tickets = ticketService.getTicketsAssignedTo(userName);
-        
+    public ResponseEntity<List<TicketResponseDTO>> getTicketsAssignedToMe(HttpServletRequest request) {
+        String userName = getCurrentUserName(request);
+        String userEmail = getCurrentUserEmail(request);
+        boolean admin = isAdmin(request);
+
+        List<IncidentTicket> tickets = ticketService.getTicketsForTechnicianDashboard(userName);
         List<TicketResponseDTO> responseDTOs = tickets.stream()
-                .map(ticket -> ticketService.convertToResponseDTO(ticket, userEmail, admin))
+                .map(t -> ticketService.convertToResponseDTO(t, userEmail, admin))
                 .collect(Collectors.toList());
-        
+
         return ResponseEntity.ok(responseDTOs);
     }
-    
-    // GET - Get ticket by ID
+
+    // Dashboard stats for technician
+    @GetMapping("/technician/dashboard")
+    public ResponseEntity<Map<String, Long>> getTechnicianDashboardStats(HttpServletRequest request) {
+        String userName = getCurrentUserName(request);
+        Map<String, Long> stats = ticketService.getDashboardStats(userName);
+        return ResponseEntity.ok(stats);
+    }
+
     @GetMapping("/{id}")
-    public ResponseEntity<TicketResponseDTO> getTicketById(@PathVariable Long id) {
+    public ResponseEntity<TicketResponseDTO> getTicketById(
+            HttpServletRequest request,
+            @PathVariable Long id) {
         IncidentTicket ticket = ticketService.getTicketById(id);
         if (ticket != null) {
-            String userEmail = getCurrentUserEmail();
-            boolean admin = isAdmin();
+            String userEmail = getCurrentUserEmail(request);
+            boolean admin = isAdmin(request);
             return ResponseEntity.ok(ticketService.convertToResponseDTO(ticket, userEmail, admin));
         }
         return ResponseEntity.notFound().build();
     }
-    
+
     // ========== STATUS MANAGEMENT ==========
-    
-    // PUT - Update ticket status
+
     @PutMapping("/{id}/status")
     public ResponseEntity<?> updateStatus(
+            HttpServletRequest request,
             @PathVariable Long id,
-            @RequestBody Map<String, String> request) {
-        
-        String newStatus = request.get("status");
-        String reason = request.get("reason");
-        
-        // Validate status transition
+            @RequestBody Map<String, String> body) {
+
+        String newStatus = body.get("status");
+        String reason = body.get("reason");
+
         IncidentTicket ticket = ticketService.getTicketById(id);
-        if (ticket == null) {
-            return ResponseEntity.notFound().build();
-        }
-        
+        if (ticket == null) return ResponseEntity.notFound().build();
+
         try {
-            TicketStatus status = TicketStatus.valueOf(newStatus.toUpperCase());
+            TicketStatus.valueOf(newStatus.toUpperCase());
             IncidentTicket updated = ticketService.updateStatus(id, newStatus.toUpperCase(), reason);
-            
+
             Map<String, String> response = new HashMap<>();
             response.put("message", "Status updated to " + newStatus);
             response.put("newStatus", updated.getStatus().name());
-            
+
             return ResponseEntity.ok(response);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("error", "Invalid status"));
         }
     }
-    
+
     // ========== TECHNICIAN MANAGEMENT ==========
-    
-    // PUT - Assign technician
+
     @PutMapping("/{id}/assign")
     public ResponseEntity<?> assignTechnician(
+            HttpServletRequest request,
             @PathVariable Long id,
-            @RequestBody Map<String, String> request) {
-        
-        String technicianName = request.get("technicianName");
+            @RequestBody Map<String, String> body) {
+
+        String technicianName = body.get("technicianName");
         if (technicianName == null || technicianName.trim().isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of("error", "Technician name is required"));
         }
-        
+
         IncidentTicket updated = ticketService.assignTechnician(id, technicianName);
         if (updated != null) {
             Map<String, String> response = new HashMap<>();
             response.put("message", "Assigned to " + technicianName);
             response.put("assignedTo", updated.getAssignedTo());
+            response.put("status", updated.getStatus().name());
             return ResponseEntity.ok(response);
         }
         return ResponseEntity.notFound().build();
     }
-    
-    // PUT - Add resolution notes
+
     @PutMapping("/{id}/resolution")
     public ResponseEntity<?> addResolutionNotes(
+            HttpServletRequest request,
             @PathVariable Long id,
-            @RequestBody Map<String, String> request) {
-        
-        String notes = request.get("notes");
+            @RequestBody Map<String, String> body) {
+
+        String notes = body.get("notes");
         if (notes == null || notes.trim().isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of("error", "Resolution notes are required"));
         }
-        
+
         IncidentTicket updated = ticketService.addResolutionNotes(id, notes);
         if (updated != null) {
-            Map<String, String> response = new HashMap<>();
-            response.put("message", "Resolution notes added");
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(Map.of("message", "Resolution notes added"));
         }
         return ResponseEntity.notFound().build();
     }
-    
+
     // ========== COMMENT MANAGEMENT ==========
-    
-    // POST - Add comment to ticket
+
     @PostMapping("/{id}/comments")
     public ResponseEntity<?> addComment(
+            HttpServletRequest request,
             @PathVariable Long id,
-            @RequestBody Map<String, String> request) {
-        
-        String content = request.get("content");
-        String authorRole = request.get("authorRole");
-        
+            @RequestBody Map<String, String> body) {
+
+        String content = body.get("content");
+        String authorRole = body.get("authorRole");
+
         if (content == null || content.trim().isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of("error", "Comment content is required"));
         }
-        
-        String userName = getCurrentUserName();
-        
+
+        String userName = getCurrentUserName(request);
         TicketComment comment = ticketService.addComment(id, content, userName, authorRole);
         if (comment != null) {
             Map<String, Object> response = new HashMap<>();
@@ -264,41 +261,40 @@ public class TicketController {
         }
         return ResponseEntity.notFound().build();
     }
-    
-    // GET - Get comments for a ticket
+
     @GetMapping("/{id}/comments")
     public ResponseEntity<List<TicketComment>> getComments(@PathVariable Long id) {
-        List<TicketComment> comments = ticketService.getCommentsByTicket(id);
-        return ResponseEntity.ok(comments);
+        return ResponseEntity.ok(ticketService.getCommentsByTicket(id));
     }
-    
-    // PUT - Edit comment (only author)
+
     @PutMapping("/comments/{commentId}")
     public ResponseEntity<?> editComment(
+            HttpServletRequest request,
             @PathVariable Long commentId,
-            @RequestBody Map<String, String> request) {
-        
-        String newContent = request.get("content");
-        String userEmail = getCurrentUserEmail();
-        
+            @RequestBody Map<String, String> body) {
+
+        String newContent = body.get("content");
+        String userEmail = getCurrentUserEmail(request);
+
         if (newContent == null || newContent.trim().isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of("error", "Comment content is required"));
         }
-        
+
         TicketComment updated = ticketService.editComment(commentId, newContent, userEmail);
         if (updated != null) {
             return ResponseEntity.ok(Map.of("message", "Comment updated", "comment", updated));
         }
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Cannot edit - not your comment"));
     }
-    
-    // DELETE - Delete comment (author or admin)
+
     @DeleteMapping("/comments/{commentId}")
-    public ResponseEntity<?> deleteComment(@PathVariable Long commentId) {
-        
-        String userEmail = getCurrentUserEmail();
-        boolean admin = isAdmin();
-        
+    public ResponseEntity<?> deleteComment(
+            HttpServletRequest request,
+            @PathVariable Long commentId) {
+
+        String userEmail = getCurrentUserEmail(request);
+        boolean admin = isAdmin(request);
+
         boolean deleted = ticketService.deleteComment(commentId, userEmail, admin);
         if (deleted) {
             return ResponseEntity.ok(Map.of("message", "Comment deleted"));

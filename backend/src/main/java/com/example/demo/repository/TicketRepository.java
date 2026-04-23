@@ -11,4 +11,9 @@ public interface TicketRepository extends JpaRepository<IncidentTicket, Long> {
     List<IncidentTicket> findByCreatedBy(String createdBy);
     List<IncidentTicket> findByStatus(TicketStatus status);
     List<IncidentTicket> findByAssignedTo(String assignedTo);
+    List<IncidentTicket> findByAssignedToOrStatus(String assignedTo, TicketStatus status);
+    long countByAssignedTo(String assignedTo);
+    long countByAssignedToAndStatus(String assignedTo, TicketStatus status);
+    long countByStatus(TicketStatus status);
+    long countByAssignedToIsNullAndStatus(TicketStatus status);
 }

@@ -261,30 +261,51 @@ const CreateTicket = ({ onTicketCreated }) => {
                     </div>
                     
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                            Attachments (Up to 3 images)
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                            Attachments <span className="text-slate-400 font-normal">(Up to 3 images, max 5MB each)</span>
                         </label>
-                        <input
-                            type="file"
-                            accept="image/*"
-                            multiple
-                            onChange={handleFileChange}
-                            className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 dark:file:bg-indigo-900 dark:file:text-indigo-300"
-                        />
+                        <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-indigo-300 dark:border-indigo-700 rounded-xl cursor-pointer bg-indigo-50 dark:bg-indigo-900/20 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition">
+                            <div className="flex flex-col items-center justify-center gap-1 pointer-events-none">
+                                <svg className="w-8 h-8 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                                <span className="text-sm text-indigo-600 dark:text-indigo-400 font-medium">Click to upload images</span>
+                                <span className="text-xs text-slate-400">PNG, JPG, GIF up to 5MB</span>
+                            </div>
+                            <input
+                                type="file"
+                                accept="image/*"
+                                multiple
+                                onChange={handleFileChange}
+                                className="hidden"
+                            />
+                        </label>
                         {imagePreviews.length > 0 && (
                             <div className="flex gap-3 mt-3 flex-wrap">
                                 {imagePreviews.map((preview, index) => (
-                                    <div key={index} className="relative">
-                                        <img src={preview} alt={`Preview ${index + 1}`} className="w-20 h-20 object-cover rounded-lg border border-slate-300 dark:border-slate-700" />
+                                    <div key={index} className="relative group">
+                                        <img src={preview} alt={`Preview ${index + 1}`} className="w-24 h-24 object-cover rounded-lg border border-slate-300 dark:border-slate-700" />
                                         <button
                                             type="button"
                                             onClick={() => removeImage(index)}
-                                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-600 transition"
+                                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-600 transition shadow"
                                         >
                                             ×
                                         </button>
+                                        <span className="absolute bottom-1 left-1 right-1 text-center text-xs text-white bg-black/50 rounded px-1 truncate">
+                                            {files[index]?.name}
+                                        </span>
                                     </div>
                                 ))}
+                                {imagePreviews.length < 3 && (
+                                    <label className="w-24 h-24 flex flex-col items-center justify-center border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-lg cursor-pointer hover:border-indigo-400 transition text-slate-400 hover:text-indigo-400">
+                                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                        </svg>
+                                        <span className="text-xs mt-1">Add more</span>
+                                        <input type="file" accept="image/*" multiple onChange={handleFileChange} className="hidden" />
+                                    </label>
+                                )}
                             </div>
                         )}
                     </div>

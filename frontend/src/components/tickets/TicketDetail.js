@@ -66,13 +66,15 @@ const TicketDetail = ({ ticketId, userRole, userName, onBack }) => {
     };
 
     const handleAddResolution = async () => {
+        if (!resolutionNotes.trim()) return;
         try {
-            await ticketService.addResolutionNotes(ticketId, resolutionNotes);
+            // Single call: stores resolutionNotes AND sets status to RESOLVED
+            await ticketService.updateStatus(ticketId, 'RESOLVED', resolutionNotes);
             setShowResolutionModal(false);
             setResolutionNotes('');
             fetchTicket();
         } catch (err) {
-            setError('Failed to add resolution notes');
+            setError('Failed to resolve ticket');
         }
     };
 
@@ -112,10 +114,11 @@ const TicketDetail = ({ ticketId, userRole, userName, onBack }) => {
 
     const getPriorityColor = (priority) => {
         const colors = {
-            LOW: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
+            LOW: 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300',
             MEDIUM: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
             HIGH: 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400',
-            URGENT: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+            URGENT: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
+            CRITICAL: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400',
         };
         return colors[priority] || colors.MEDIUM;
     };
@@ -133,17 +136,18 @@ const TicketDetail = ({ ticketId, userRole, userName, onBack }) => {
 
     const getStatusActions = () => {
         if (!ticket) return [];
-        const status = ticket.status;
+        const { status } = ticket;
+        const isPrivileged = userRole === 'ADMIN' || userRole === 'TECHNICIAN';
         const actions = [];
-        
-        if (status === 'OPEN') {
-            if (userRole === 'ADMIN') {
-                actions.push({ label: 'Start Progress', status: 'IN_PROGRESS' });
-                actions.push({ label: 'Reject', status: 'REJECTED', isReject: true });
-            }
-        } else if (status === 'IN_PROGRESS') {
-            actions.push({ label: 'Resolve', status: 'RESOLVED' });
-        } else if (status === 'RESOLVED') {
+
+        if (status === 'OPEN' && isPrivileged) {
+            actions.push({ label: 'Start Progress', status: 'IN_PROGRESS' });
+            actions.push({ label: 'Reject', status: 'REJECTED', isReject: true });
+        } else if (status === 'IN_PROGRESS' && isPrivileged) {
+            actions.push({ label: 'Resolve', status: 'RESOLVED', isResolve: true });
+            actions.push({ label: 'Close', status: 'CLOSED' });
+            actions.push({ label: 'Reject', status: 'REJECTED', isReject: true });
+        } else if (status === 'RESOLVED' && isPrivileged) {
             actions.push({ label: 'Close', status: 'CLOSED' });
         }
         return actions;
@@ -233,6 +237,33 @@ const TicketDetail = ({ ticketId, userRole, userName, onBack }) => {
                         </p>
                     </div>
                     
+                    {/* Attachments */}
+                    {ticket.attachments && ticket.attachments.length > 0 && (
+                        <div>
+                            <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Attachments</label>
+                            <div className="flex gap-3 mt-2 flex-wrap">
+                                {ticket.attachments.map((att) => (
+                                    <a
+                                        key={att.id}
+                                        href={`http://localhost:8086${att.fileUrl}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="group relative"
+                                    >
+                                        <img
+                                            src={`http://localhost:8086${att.fileUrl}`}
+                                            alt={att.fileName}
+                                            className="w-28 h-28 object-cover rounded-lg border border-slate-300 dark:border-slate-700 group-hover:opacity-80 transition"
+                                        />
+                                        <span className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-xs px-1 py-0.5 rounded-b-lg truncate text-center">
+                                            {att.fileName}
+                                        </span>
+                                    </a>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
                     {/* Resolution Notes */}
                     {ticket.resolutionNotes && (
                         <div>
@@ -264,12 +295,19 @@ const TicketDetail = ({ ticketId, userRole, userName, onBack }) => {
                                         onClick={() => {
                                             if (action.isReject) {
                                                 setShowRejectModal(true);
+                                            } else if (action.isResolve) {
+                                                setShowResolutionModal(true);
                                             } else {
                                                 setNewStatus(action.status);
                                                 setShowStatusModal(true);
                                             }
                                         }}
-                                        className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium transition"
+                                        className={`px-4 py-2 rounded-lg text-sm font-medium transition text-white ${
+                                            action.isReject ? 'bg-red-600 hover:bg-red-700' :
+                                            action.isResolve ? 'bg-green-600 hover:bg-green-700' :
+                                            action.status === 'CLOSED' ? 'bg-slate-500 hover:bg-slate-600' :
+                                            'bg-indigo-600 hover:bg-indigo-700'
+                                        }`}
                                     >
                                         {action.label}
                                     </button>
@@ -392,17 +430,24 @@ const TicketDetail = ({ ticketId, userRole, userName, onBack }) => {
             {showRejectModal && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
                     <div className="bg-white dark:bg-slate-900 rounded-xl p-6 max-w-md w-full mx-4">
-                        <h3 className="text-lg font-semibold mb-4">Reject Ticket</h3>
+                        <h3 className="text-lg font-semibold mb-1 text-slate-900 dark:text-white">Reject Ticket</h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Rejection reason is required.</p>
                         <textarea
                             placeholder="Reason for rejection..."
                             value={rejectReason}
                             onChange={(e) => setRejectReason(e.target.value)}
-                            className="w-full px-3 py-2 rounded-lg border mb-4"
+                            className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white mb-4"
                             rows="3"
                         />
                         <div className="flex gap-3 justify-end">
-                            <button onClick={() => setShowRejectModal(false)} className="px-4 py-2 border rounded-lg">Cancel</button>
-                            <button onClick={handleReject} className="px-4 py-2 bg-red-600 text-white rounded-lg">Reject</button>
+                            <button onClick={() => setShowRejectModal(false)} className="px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-700 dark:text-slate-300">Cancel</button>
+                            <button
+                                onClick={handleReject}
+                                disabled={!rejectReason.trim()}
+                                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition"
+                            >
+                                Reject Ticket
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -430,17 +475,24 @@ const TicketDetail = ({ ticketId, userRole, userName, onBack }) => {
             {showResolutionModal && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
                     <div className="bg-white dark:bg-slate-900 rounded-xl p-6 max-w-md w-full mx-4">
-                        <h3 className="text-lg font-semibold mb-4">Add Resolution Notes</h3>
+                        <h3 className="text-lg font-semibold mb-1 text-slate-900 dark:text-white">Mark as Resolved</h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Resolution notes are required.</p>
                         <textarea
                             placeholder="How was this issue resolved?"
                             value={resolutionNotes}
                             onChange={(e) => setResolutionNotes(e.target.value)}
-                            className="w-full px-3 py-2 rounded-lg border mb-4"
+                            className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white mb-4"
                             rows="3"
                         />
                         <div className="flex gap-3 justify-end">
-                            <button onClick={() => setShowResolutionModal(false)} className="px-4 py-2 border rounded-lg">Cancel</button>
-                            <button onClick={handleAddResolution} className="px-4 py-2 bg-yellow-600 text-white rounded-lg">Save</button>
+                            <button onClick={() => setShowResolutionModal(false)} className="px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-700 dark:text-slate-300">Cancel</button>
+                            <button
+                                onClick={handleAddResolution}
+                                disabled={!resolutionNotes.trim()}
+                                className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition"
+                            >
+                                Resolve Ticket
+                            </button>
                         </div>
                     </div>
                 </div>

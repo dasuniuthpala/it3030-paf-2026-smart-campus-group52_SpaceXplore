@@ -13,7 +13,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -76,6 +78,22 @@ public class TicketService {
     public List<IncidentTicket> getTicketsAssignedTo(String technicianName) {
         return ticketRepository.findByAssignedTo(technicianName);
     }
+
+    // GET tickets for technician dashboard: assigned to them + all OPEN unassigned tickets
+    public List<IncidentTicket> getTicketsForTechnicianDashboard(String technicianName) {
+        return ticketRepository.findByAssignedToOrStatus(technicianName, TicketStatus.OPEN);
+    }
+
+    // GET dashboard statistics for a technician
+    public Map<String, Long> getDashboardStats(String technicianName) {
+        Map<String, Long> stats = new HashMap<>();
+        stats.put("totalAssigned", ticketRepository.countByAssignedTo(technicianName));
+        stats.put("openCount", ticketRepository.countByAssignedToIsNullAndStatus(TicketStatus.OPEN));
+        stats.put("inProgressCount", ticketRepository.countByAssignedToAndStatus(technicianName, TicketStatus.IN_PROGRESS));
+        stats.put("resolvedCount", ticketRepository.countByAssignedToAndStatus(technicianName, TicketStatus.RESOLVED));
+        stats.put("closedCount", ticketRepository.countByAssignedToAndStatus(technicianName, TicketStatus.CLOSED));
+        return stats;
+    }
     
     // GET ticket by ID with all details
     public IncidentTicket getTicketById(Long id) {
@@ -90,6 +108,9 @@ public class TicketService {
             ticket.setStatus(TicketStatus.valueOf(newStatus));
             if ("REJECTED".equals(newStatus) && reason != null) {
                 ticket.setRejectionReason(reason);
+            }
+            if ("RESOLVED".equals(newStatus) && reason != null) {
+                ticket.setResolutionNotes(reason);
             }
             ticket.setUpdatedAt(LocalDateTime.now());
             return ticketRepository.save(ticket);
