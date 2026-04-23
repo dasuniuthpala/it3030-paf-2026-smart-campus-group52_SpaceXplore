@@ -176,7 +176,7 @@ function Dashboard() {
         <header className="flex h-20 items-center justify-between bg-transparent px-8 shrink-0">
           <div>
             <h1 className="text-3xl font-black text-[#2b2b4f] dark:text-white tracking-tight rounded-t-sm">
-              {activeTab === 'dashboard' && `Hello, ${user?.firstName || 'Student'}!`}
+              {activeTab === 'dashboard' && `Hello, ${(user?.firstName || 'Student').split(' ')[0]}!`}
               {activeTab === 'profile' && 'My Profile'}
               {activeTab === 'settings' && 'Account Settings'}
               {activeTab === 'bookings' && 'My Reservations'}
@@ -236,7 +236,7 @@ function Dashboard() {
                   <img src="https://images.unsplash.com/photo-1599566150163-29194dcaad36?auto=format&fit=crop&w=64&q=80" alt="Avatar" className="w-full h-full object-cover" />
                 </div>
                 <div className="hidden sm:block text-right">
-                  <p className="text-sm font-bold text-[#2b2b4f] dark:text-white leading-none">{user?.firstName} {user?.lastName}</p>
+                  <p className="text-sm font-bold text-[#2b2b4f] dark:text-white leading-none">{user?.firstName?.split(' ')[0]}</p>
                   <p className="text-[11px] font-medium text-slate-500 mt-1 uppercase tracking-widest">{user?.role || 'Student'}</p>
                 </div>
              </div>
@@ -434,7 +434,7 @@ function Dashboard() {
                          <img src="https://images.unsplash.com/photo-1599566150163-29194dcaad36?auto=format&fit=crop&w=256&q=80" alt="Avatar" className="w-full h-full object-cover" />
                       </div>
                       <div className="flex-1 pb-2">
-                         <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{user?.firstName} {user?.lastName}</h2>
+                         <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{user?.firstName?.split(' ')[0]}</h2>
                          <p className="text-indigo-600 dark:text-indigo-400 font-bold tracking-wide mt-1">{user?.role || 'Undergraduate Student'}</p>
                          <p className="text-sm text-slate-500 dark:text-slate-400 mt-2 font-medium">{user?.email || 'student@spacexplore.edu'}</p>
                       </div>

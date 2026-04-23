@@ -187,18 +187,23 @@ function ResourceCataloguePage() {
           <img src={logoImage} alt="SpaceXplore logo" className="h-12 w-auto dark:invert drop-shadow-[0_0_15px_rgba(0,0,0,0.1)] dark:drop-shadow-[0_0_15px_rgba(255,255,255,0.3)] hover:scale-105 transition-transform duration-300" />
           <div className="flex items-center gap-3">
             <ThemeToggle />
-            <div className="h-5 w-px bg-slate-300 dark:bg-slate-700 mx-2"></div>
-            <Link
-              to="/"
-              className="group relative overflow-hidden rounded-full bg-indigo-500/10 px-6 py-2.5 text-sm font-semibold text-indigo-600 dark:text-indigo-300 ring-1 ring-inset ring-indigo-500/20 transition-all hover:bg-indigo-500/20 hover:text-indigo-700 dark:hover:text-indigo-200 hover:ring-indigo-500/50"
-            >
-              <span className="relative z-10">Return to Hub</span>
-            </Link>
+
           </div>
         </div>
       </nav>
 
       <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+        <div className="mb-6">
+          <Link
+            to="/dashboard"
+            className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors group"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 transition-transform group-hover:-translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            Back to Dashboard
+          </Link>
+        </div>
         {/* Header Section */}
         <section className="relative overflow-hidden rounded-3xl border border-slate-200 dark:border-slate-800/60 bg-white/40 dark:bg-slate-800/40 p-8 shadow-[0_5px_30px_rgba(0,0,0,0.05)] dark:shadow-2xl backdrop-blur-md sm:p-12 mb-10 transition-colors">
           <div className="absolute top-0 right-0 -mr-20 -mt-20 h-64 w-64 rounded-full bg-indigo-500/20 blur-[80px]"></div>
