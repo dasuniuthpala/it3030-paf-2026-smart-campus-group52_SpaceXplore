@@ -31,6 +31,13 @@ public class User {
     @Column(nullable = false)
     private Role role;
 
+    private String studentId;
+    private String academicProgram;
+    private Integer degreeProgress;
+    private String labCredits;
+    @Column(columnDefinition = "TEXT")
+    private String avatarUrl;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Long createdAt;
 

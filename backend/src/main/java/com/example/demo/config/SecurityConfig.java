@@ -43,10 +43,20 @@ public class SecurityConfig {
                 session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
             )
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/", "/error", "/api/public/**", "/api/auth/**", "/oauth2/**", "/login/oauth2/**").permitAll()
+                .requestMatchers("/", "/error", "/api/public/**", "/api/auth/register", "/api/auth/login", "/oauth2/**", "/login/oauth2/**", "/api/bookings/**", "/api/notifications/**", "/api/tickets/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/resources/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/uploads/**").permitAll()
                 .requestMatchers("/api/admin/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
                 .anyRequest().authenticated()
+            )
+            .exceptionHandling(exceptions -> exceptions
+                .authenticationEntryPoint((request, response, authException) -> {
+                    if (request.getRequestURI().startsWith("/api/")) {
+                        response.setStatus(401);
+                    } else {
+                        response.sendRedirect("/login");
+                    }
+                })
             );
 
         if (clientRegistrationRepository.getIfAvailable() != null) {

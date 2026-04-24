@@ -1,6 +1,7 @@
 package com.example.demo.service;
 
 import com.example.demo.dto.LoginRequest;
+import com.example.demo.dto.ProfileUpdateRequest;
 import com.example.demo.dto.RegisterRequest;
 import com.example.demo.dto.UserResponse;
 import com.example.demo.model.Role;
@@ -49,7 +50,12 @@ public class AuthService {
                 savedUser.getLastName(),
                 savedUser.getEmail(),
                 generateToken(savedUser),
-                savedUser.getRole()
+                savedUser.getRole(),
+                savedUser.getStudentId(),
+                savedUser.getAcademicProgram(),
+                savedUser.getDegreeProgress(),
+                savedUser.getLabCredits(),
+                savedUser.getAvatarUrl()
         );
     }
 
@@ -77,7 +83,41 @@ public class AuthService {
                 user.getLastName(),
                 user.getEmail(),
                 generateToken(user),
-                user.getRole()
+                user.getRole(),
+                user.getStudentId(),
+                user.getAcademicProgram(),
+                user.getDegreeProgress(),
+                user.getLabCredits(),
+                user.getAvatarUrl()
+        );
+    }
+
+    public UserResponse updateProfile(Long userId, ProfileUpdateRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (request.getFirstName() != null) user.setFirstName(request.getFirstName());
+        if (request.getLastName() != null) user.setLastName(request.getLastName());
+        if (request.getStudentId() != null) user.setStudentId(request.getStudentId());
+        if (request.getAcademicProgram() != null) user.setAcademicProgram(request.getAcademicProgram());
+        if (request.getDegreeProgress() != null) user.setDegreeProgress(request.getDegreeProgress());
+        if (request.getLabCredits() != null) user.setLabCredits(request.getLabCredits());
+        if (request.getAvatarUrl() != null) user.setAvatarUrl(request.getAvatarUrl());
+
+        User updated = userRepository.save(user);
+
+        return new UserResponse(
+                updated.getId(),
+                updated.getFirstName(),
+                updated.getLastName(),
+                updated.getEmail(),
+                generateToken(updated),
+                updated.getRole(),
+                updated.getStudentId(),
+                updated.getAcademicProgram(),
+                updated.getDegreeProgress(),
+                updated.getLabCredits(),
+                updated.getAvatarUrl()
         );
     }
 

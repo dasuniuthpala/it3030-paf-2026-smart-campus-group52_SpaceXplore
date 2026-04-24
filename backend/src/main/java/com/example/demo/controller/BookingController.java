@@ -66,6 +66,14 @@ public class BookingController {
         return ResponseEntity.ok(bookingService.getAllBookings(Optional.ofNullable(resourceName), Optional.ofNullable(status), Optional.ofNullable(date)));
     }
 
+    @GetMapping("/conflicts/list")
+    public ResponseEntity<List<BookingResponse>> getConflicts(
+            @RequestHeader("X-User-Role") String role
+    ) {
+        requireAdmin(role);
+        return ResponseEntity.ok(bookingService.getConflictingBookings());
+    }
+
     @PutMapping("/{bookingId}/approve")
     public ResponseEntity<BookingResponse> approve(
             @RequestHeader("X-User-Role") String role,

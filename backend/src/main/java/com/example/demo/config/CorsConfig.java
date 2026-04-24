@@ -14,7 +14,7 @@ import java.util.List;
 public class CorsConfig {
 
     @Value("${app.cors.allowed-origins:http://localhost:3000}")
-    private String[] allowedOrigins;
+    private String allowedOriginsString;
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
@@ -23,8 +23,9 @@ public class CorsConfig {
         // Allow credentials (e.g., cookies, authorization headers)
         config.setAllowCredentials(true);
         
-        // Read multiple origins from properties
-        config.setAllowedOrigins(Arrays.asList(allowedOrigins));
+        // Parse comma-separated origins from properties
+        List<String> allowedOrigins = Arrays.asList(allowedOriginsString.split(","));
+        config.setAllowedOrigins(allowedOrigins);
         
         // Allow all headers
         config.setAllowedHeaders(List.of("*"));

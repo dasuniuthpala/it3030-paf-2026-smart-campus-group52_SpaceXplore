@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { CreateTicket, TicketList, TicketDetail } from './components/tickets';
 import ThemeToggle from './ThemeToggle';
 import logoImage from './images/logo.png';
 import API_BASE_URL from './apiConfig';
@@ -8,15 +9,29 @@ function Dashboard() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [selectedTicketId, setSelectedTicketId] = useState(null);
   const [bookings, setBookings] = useState([]);
   const [bookingsLoading, setBookingsLoading] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [showNotifications, setShowNotifications] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [notificationFilter, setNotificationFilter] = useState('all');
+  const [showEditProfileModal, setShowEditProfileModal] = useState(false);
+  const [profileEditForm, setProfileEditForm] = useState({
+    firstName: '',
+    lastName: '',
+    studentId: '',
+    academicProgram: '',
+    degreeProgress: 0,
+    labCredits: '',
+    avatarUrl: ''
+  });
+  const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
 
   // Calendar State
   const [currentDate, setCurrentDate] = useState(new Date());
-  
+
   const handlePrevMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
   const handleNextMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
 
@@ -38,7 +53,21 @@ function Dashboard() {
       navigate('/login');
       return;
     }
+    // Technicians have their own dashboard
+    if (parsed.role === 'TECHNICIAN') {
+      navigate('/technician', { replace: true });
+      return;
+    }
     setUser(parsed);
+    setProfileEditForm({
+      firstName: parsed.firstName || '',
+      lastName: parsed.lastName || '',
+      studentId: parsed.studentId || '',
+      academicProgram: parsed.academicProgram || '',
+      degreeProgress: parsed.degreeProgress || 0,
+      labCredits: parsed.labCredits || '',
+      avatarUrl: parsed.avatarUrl || ''
+    });
   }, [navigate]);
 
   const fetchBookings = useCallback(async () => {
@@ -75,6 +104,79 @@ function Dashboard() {
     }
   }, [activeTab, user, fetchBookings]);
 
+  const fetchNotifications = useCallback(async () => {
+    if (!user || !user.id) return;
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/notifications`, {
+        headers: { 'X-User-Id': user.id.toString() }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setNotifications(data);
+      }
+    } catch (err) {
+      console.error('Error fetching notifications', err);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      fetchNotifications();
+    }
+  }, [user, fetchNotifications]);
+
+  const markNotificationAsRead = async (id) => {
+    try {
+      await fetch(`${API_BASE_URL}/api/notifications/${id}/read`, {
+        method: 'PUT',
+        headers: { 'X-User-Id': user.id.toString() }
+      });
+      setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const markAllNotificationsAsRead = async () => {
+    try {
+      await fetch(`${API_BASE_URL}/api/notifications/read-all`, {
+        method: 'PUT',
+        headers: { 'X-User-Id': user.id.toString() }
+      });
+      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const deleteNotification = async (e, id) => {
+    e.stopPropagation();
+    try {
+      await fetch(`${API_BASE_URL}/api/notifications/${id}`, {
+        method: 'DELETE',
+        headers: { 'X-User-Id': user.id.toString() }
+      });
+      setNotifications(prev => prev.filter(n => n.id !== id));
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const formatTimeAgo = (timestamp) => {
+    const seconds = Math.floor((Date.now() - timestamp) / 1000);
+    let interval = seconds / 31536000;
+    if (interval > 1) return Math.floor(interval) + " years ago";
+    interval = seconds / 2592000;
+    if (interval > 1) return Math.floor(interval) + " months ago";
+    interval = seconds / 86400;
+    if (interval > 1) return Math.floor(interval) + " days ago";
+    interval = seconds / 3600;
+    if (interval > 1) return Math.floor(interval) + " hours ago";
+    interval = seconds / 60;
+    if (interval > 1) return Math.floor(interval) + " minutes ago";
+    return "just now";
+  };
+
   const actionBooking = async (id, actionType) => {
     setError('');
     setMessage('');
@@ -83,12 +185,14 @@ function Dashboard() {
       const body = actionType === 'cancel' ? null : JSON.stringify({ reason: actionType === 'approve' ? 'Auto-approved' : 'Rejected by admin' });
 
       const method = 'PUT';
-      const options = { method, headers: {
-        'Content-Type': 'application/json',
-        'X-User-Id': user.id.toString(),
-        'X-User-Email': user.email,
-        'X-User-Role': user.role || 'USER'
-      } };
+      const options = {
+        method, headers: {
+          'Content-Type': 'application/json',
+          'X-User-Id': user.id.toString(),
+          'X-User-Email': user.email,
+          'X-User-Role': user.role || 'USER'
+        }
+      };
       if (body) options.body = body;
 
       const response = await fetch(url, options);
@@ -109,29 +213,92 @@ function Dashboard() {
     }
   };
 
+  // Ticket handler functions
+  const handleSelectTicket = (ticketId) => {
+    setSelectedTicketId(ticketId);
+    setActiveTab('ticketDetail');
+  };
+
+  const handleBackToTickets = () => {
+    setSelectedTicketId(null);
+    setActiveTab('myTickets');
+  };
+
   const handleLogout = () => {
     localStorage.removeItem('user');
-    localStorage.removeItem('token');
     navigate('/login');
+  };
+
+  const handleAvatarChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        setError('Image size should be less than 2MB');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProfileEditForm({ ...profileEditForm, avatarUrl: reader.result });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleEditProfileSubmit = async (e) => {
+    e.preventDefault();
+    setIsUpdatingProfile(true);
+    setError('');
+    setMessage('');
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/auth/update-profile`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-User-Id': user.id.toString()
+        },
+        credentials: 'include',
+        body: JSON.stringify(profileEditForm)
+      });
+
+      if (res.ok) {
+        const updatedUser = await res.json();
+        setUser(updatedUser);
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+        setShowEditProfileModal(false);
+        setMessage('Profile updated successfully!');
+      } else {
+        const errData = await res.json();
+        setError(errData.message || 'Failed to update profile');
+      }
+    } catch (err) {
+      setError('Connection error. Please try again.');
+    } finally {
+      setIsUpdatingProfile(false);
+    }
   };
 
   const menuItems = [
     { id: 'dashboard', name: 'Dashboard', icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg> },
     { id: 'bookings', name: 'My Bookings', icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg> },
+    // TICKET MANAGEMENT MENU ITEMS
+    { id: 'myTickets', name: 'My Tickets', icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" /></svg> },
+    { id: 'reportIncident', name: 'Report Incident', icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg> },
     { id: 'facilities', name: 'Facilities', icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg> },
+    { id: 'notifications', name: 'Notifications', icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg> },
     { id: 'profile', name: 'My Profile', icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg> },
     { id: 'settings', name: 'Settings', icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg> },
   ];
 
   return (
     <div className="flex h-screen w-full bg-[#f4f7fe] dark:bg-slate-950 font-sans text-slate-800 dark:text-slate-200">
-      
+
       {/* ---------------- Sidebar ---------------- */}
       <aside className="w-64 shrink-0 bg-[#2b2b4f] dark:bg-slate-900 text-white flex flex-col transition-colors duration-300">
         <div className="flex h-20 items-center justify-center border-b border-indigo-400/20 px-6 dark:border-white/10">
           <div className="flex items-center gap-3">
-             <img src={logoImage} alt="Logo" className="w-8 h-8 object-contain filter invert opacity-90" />
-             <span className="text-xl font-bold tracking-wide">SpaceXplore</span>
+            <img src={logoImage} alt="Logo" className="w-8 h-8 object-contain filter invert opacity-90" />
+            <span className="text-xl font-bold tracking-wide">SpaceXplore</span>
           </div>
         </div>
 
@@ -141,14 +308,25 @@ function Dashboard() {
               <li key={item.id}>
                 <button
                   onClick={() => {
-                     if (item.id === 'facilities') { navigate('/resources'); return; }
-                     setActiveTab(item.id);
+                    if (item.id === 'facilities') {
+                      navigate('/resources');
+                      return;
+                    }
+                    if (item.id === 'myTickets') {
+                      setSelectedTicketId(null);
+                      setActiveTab('myTickets');
+                      return;
+                    }
+                    if (item.id === 'reportIncident') {
+                      setActiveTab('reportIncident');
+                      return;
+                    }
+                    setActiveTab(item.id);
                   }}
-                  className={`w-full flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-300 ${
-                    activeTab === item.id 
-                      ? 'bg-indigo-600/90 text-white shadow-[0_0_15px_rgba(79,70,229,0.4)]' 
-                      : 'text-indigo-200 hover:bg-white/10 hover:text-white'
-                  }`}
+                  className={`w-full flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-300 ${activeTab === item.id
+                    ? 'bg-indigo-600/90 text-white shadow-[0_0_15px_rgba(79,70,229,0.4)]'
+                    : 'text-indigo-200 hover:bg-white/10 hover:text-white'
+                    }`}
                 >
                   {item.icon}
                   <span className="font-medium text-sm">{item.name}</span>
@@ -159,453 +337,500 @@ function Dashboard() {
         </div>
 
         <div className="p-4 mt-auto border-t border-indigo-400/20 dark:border-white/10">
-           <button 
-             onClick={handleLogout}
-             className="w-full flex items-center gap-4 px-4 py-3 text-indigo-200 hover:bg-white/10 hover:text-white rounded-xl transition-all"
-           >
-             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
-             <span className="font-medium text-sm">Log out</span>
-           </button>
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-4 px-4 py-3 text-indigo-200 hover:bg-white/10 hover:text-white rounded-xl transition-all"
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+            <span className="font-medium text-sm">Log out</span>
+          </button>
         </div>
       </aside>
 
       {/* ---------------- Main Content ---------------- */}
       <main className="flex-1 flex flex-col overflow-hidden">
-        
+
         {/* Top Header */}
         <header className="flex h-20 items-center justify-between bg-transparent px-8 shrink-0">
           <div>
             <h1 className="text-3xl font-black text-[#2b2b4f] dark:text-white tracking-tight rounded-t-sm">
-              {activeTab === 'dashboard' && `Hello, ${user?.firstName || 'Student'}!`}
+              {activeTab === 'dashboard' && `Hello, ${(user?.firstName || 'Student').split(' ')[0]}!`}
               {activeTab === 'profile' && 'My Profile'}
               {activeTab === 'settings' && 'Account Settings'}
               {activeTab === 'bookings' && 'My Reservations'}
+              {activeTab === 'myTickets' && 'My Tickets'}
+              {activeTab === 'reportIncident' && 'Report an Incident'}
+              {activeTab === 'ticketDetail' && 'Ticket Details'}
+              {activeTab === 'notifications' && 'Notifications'}
             </h1>
             <p className="text-sm text-slate-500 font-medium mt-0.5">
-              {activeTab === 'dashboard' 
-                  ? new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', weekday: 'long' })
-                  : 'Manage your space and preferences'}
+              {activeTab === 'dashboard'
+                ? new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', weekday: 'long' })
+                : activeTab === 'myTickets' ? 'View and track your incident reports'
+                  : activeTab === 'reportIncident' ? 'Submit a new maintenance or incident ticket'
+                    : activeTab === 'notifications' ? 'View your alerts and updates'
+                      : 'Manage your space and preferences'}
             </p>
           </div>
 
           <div className="flex items-center gap-6">
-             <div className="relative hidden md:block">
-               <svg className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-               <input 
-                 type="text" 
-                 placeholder="Search" 
-                 className="pl-10 pr-4 py-2.5 rounded-full bg-white dark:bg-slate-800 border-none shadow-sm text-sm w-[300px] focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
-               />
-             </div>
-             
-             <ThemeToggle />
+            <div className="relative hidden md:block">
+              <svg className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+              <input
+                type="text"
+                placeholder="Search"
+                className="pl-10 pr-4 py-2.5 rounded-full bg-white dark:bg-slate-800 border-none shadow-sm text-sm w-[300px] focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+              />
+            </div>
 
-             <div className="relative">
-               <button 
-                 onClick={() => setShowNotifications(!showNotifications)}
-                 className="relative p-2 text-slate-400 hover:text-indigo-600 transition-colors"
-               >
-                 <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
-                 <span className="absolute top-2 right-2.5 h-2 w-2 rounded-full bg-emerald-500 ring-2 ring-[#f4f7fe] dark:ring-slate-950"></span>
-               </button>
+            <ThemeToggle />
 
-               {showNotifications && (
-                 <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700 overflow-hidden z-50 animate-fade-in-up">
-                    <div className="p-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-900/50">
-                       <h3 className="font-bold text-slate-800 dark:text-white">Notifications</h3>
-                       <button onClick={() => setShowNotifications(false)} className="text-xs text-indigo-500 font-semibold hover:text-indigo-600">Close</button>
+            <div className="relative">
+              <button
+                onClick={() => setShowNotifications(!showNotifications)}
+                className="relative p-2 text-slate-400 hover:text-indigo-600 transition-colors"
+              >
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+                {notifications.filter(n => !n.read).length > 0 && (
+                  <span className="absolute top-0 right-0 h-4 w-4 rounded-full bg-red-500 ring-2 ring-[#f4f7fe] dark:ring-slate-950 text-[10px] text-white flex items-center justify-center font-bold">
+                    {notifications.filter(n => !n.read).length}
+                  </span>
+                )}
+              </button>
+
+              {showNotifications && (
+                <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700 overflow-hidden z-50 animate-fade-in-up">
+                  <div className="p-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-900/50">
+                    <h3 className="font-bold text-slate-800 dark:text-white">Notifications</h3>
+                    <div className="flex gap-3">
+                      <button onClick={() => { setShowNotifications(false); setActiveTab('notifications'); }} className="text-xs text-indigo-500 font-semibold hover:text-indigo-600">View all</button>
+                      {notifications.filter(n => !n.read).length > 0 && (
+                        <button onClick={markAllNotificationsAsRead} className="text-xs text-indigo-500 font-semibold hover:text-indigo-600">Mark all read</button>
+                      )}
+                      <button onClick={() => setShowNotifications(false)} className="text-xs text-slate-500 font-semibold hover:text-slate-600">Close</button>
                     </div>
-                    <div className="max-h-80 overflow-y-auto">
-                       <div className="p-4 border-b border-slate-100 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-700/30 cursor-pointer transition-colors block">
-                          <p className="text-sm font-bold text-slate-800 dark:text-white mb-1">Booking Approved</p>
-                          <p className="text-xs text-slate-500 dark:text-slate-400">Your reservation for Smart Lab F1205 has been approved.</p>
-                          <p className="text-[10px] text-slate-400 mt-2">2 hours ago</p>
-                       </div>
-                       <div className="p-4 border-b border-slate-100 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-700/30 cursor-pointer transition-colors block">
-                          <p className="text-sm font-bold text-slate-800 dark:text-white mb-1">System Update</p>
-                          <p className="text-xs text-slate-500 dark:text-slate-400">SpaceXplore will undergo scheduled maintenance at 2 AM.</p>
-                          <p className="text-[10px] text-slate-400 mt-2">5 hours ago</p>
-                       </div>
-                    </div>
-                 </div>
-               )}
-             </div>
+                  </div>
+                  <div className="max-h-80 overflow-y-auto">
+                    {notifications.length === 0 ? (
+                      <div className="p-6 text-center text-slate-500 dark:text-slate-400 text-sm">No notifications</div>
+                    ) : (
+                      notifications.map(n => (
+                        <div
+                          key={n.id}
+                          onClick={() => !n.read && markNotificationAsRead(n.id)}
+                          className={`p-4 border-b border-slate-100 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-700/30 cursor-pointer transition-colors block ${!n.read ? 'bg-indigo-50/50 dark:bg-indigo-900/10' : ''}`}
+                        >
+                          <div className="flex justify-between items-start mb-1">
+                            <p className={`text-sm font-bold ${!n.read ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-800 dark:text-white'}`}>{n.title}</p>
+                            <div className="flex items-center gap-2">
+                              {!n.read && <span className="h-2 w-2 rounded-full bg-indigo-500 shrink-0"></span>}
+                              <button onClick={(e) => deleteNotification(e, n.id)} className="text-slate-400 hover:text-red-500 transition-colors">
+                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                              </button>
+                            </div>
+                          </div>
+                          <p className="text-xs text-slate-500 dark:text-slate-400">{n.message}</p>
+                          <p className="text-[10px] text-slate-400 mt-2">{formatTimeAgo(n.createdAt)}</p>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
 
-             <div className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => setActiveTab('profile')}>
-                <div className="w-10 h-10 rounded-full bg-indigo-100 overflow-hidden border-2 border-white shadow-sm dark:border-slate-800">
-                  <img src="https://images.unsplash.com/photo-1599566150163-29194dcaad36?auto=format&fit=crop&w=64&q=80" alt="Avatar" className="w-full h-full object-cover" />
-                </div>
-                <div className="hidden sm:block text-right">
-                  <p className="text-sm font-bold text-[#2b2b4f] dark:text-white leading-none">{user?.firstName} {user?.lastName}</p>
-                  <p className="text-[11px] font-medium text-slate-500 mt-1 uppercase tracking-widest">{user?.role || 'Student'}</p>
-                </div>
-             </div>
+            <div className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => setActiveTab('profile')}>
+              <div className="w-10 h-10 rounded-full bg-indigo-100 overflow-hidden border-2 border-white shadow-sm dark:border-slate-800">
+                <img src={user?.avatarUrl || "https://images.unsplash.com/photo-1599566150163-29194dcaad36?auto=format&fit=crop&w=64&q=80"} alt="Avatar" className="w-full h-full object-cover" />
+              </div>
+              <div className="hidden sm:block text-right">
+                <p className="text-sm font-bold text-[#2b2b4f] dark:text-white leading-none">{user?.firstName?.split(' ')[0]}</p>
+                <p className="text-[11px] font-medium text-slate-500 mt-1 uppercase tracking-widest">{user?.role || 'Student'}</p>
+              </div>
+            </div>
           </div>
         </header>
 
         {/* Dynamic Content */}
         <div className="flex-1 overflow-y-auto p-8 pt-4">
-          
+
           {/* TAB: DASHBOARD */}
           {activeTab === 'dashboard' && (
-             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-               {/* Left Column (Stats & Schedule) */}
-               <div className="lg:col-span-2 space-y-8">
-                  {/* Stats Row */}
-                  <section>
-                     <div className="flex justify-between items-end mb-4">
-                       <h3 className="text-lg font-bold text-[#2b2b4f] dark:text-white">Progress Overview</h3>
-                     </div>
-                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        {/* Stat Card 1 */}
-                        <div className="bg-white dark:bg-slate-800 rounded-[1.25rem] p-5 shadow-[0_2px_10px_rgba(0,0,0,0.02)] flex flex-col items-center justify-center text-center border border-slate-100 dark:border-slate-700/50">
-                           <p className="text-xs font-semibold text-slate-500 mb-4">Upcoming</p>
-                           <div className="w-16 h-16 rounded-full border-[3px] border-indigo-500 flex items-center justify-center mb-3 shadow-[0_0_15px_rgba(79,70,229,0.2)]">
-                             <span className="text-xl font-black text-[#2b2b4f] dark:text-white">2/5</span>
-                           </div>
-                           <p className="text-[10px] text-slate-400 font-medium">Bookings this week</p>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              {/* Left Column (Stats & Schedule) */}
+              <div className="lg:col-span-2 space-y-8">
+                {/* Stats Row */}
+                <section>
+                  <div className="flex justify-between items-end mb-4">
+                    <h3 className="text-lg font-bold text-[#2b2b4f] dark:text-white">Progress Overview</h3>
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="bg-white dark:bg-slate-800 rounded-[1.25rem] p-5 shadow-[0_2px_10px_rgba(0,0,0,0.02)] flex flex-col items-center justify-center text-center border border-slate-100 dark:border-slate-700/50">
+                      <p className="text-xs font-semibold text-slate-500 mb-4">Upcoming</p>
+                      <div className="w-16 h-16 rounded-full border-[3px] border-indigo-500 flex items-center justify-center mb-3 shadow-[0_0_15px_rgba(79,70,229,0.2)]">
+                        <span className="text-xl font-black text-[#2b2b4f] dark:text-white">2/5</span>
+                      </div>
+                      <p className="text-[10px] text-slate-400 font-medium">Bookings this week</p>
+                    </div>
+                    <div className="bg-white dark:bg-slate-800 rounded-[1.25rem] p-5 shadow-[0_2px_10px_rgba(0,0,0,0.02)] flex flex-col items-center justify-center text-center border border-slate-100 dark:border-slate-700/50">
+                      <p className="text-xs font-semibold text-slate-500 mb-4">Study Hours</p>
+                      <div className="w-16 h-16 rounded-full border-[3px] border-purple-500 flex items-center justify-center mb-3 shadow-[0_0_15px_rgba(168,85,247,0.2)]">
+                        <span className="text-xl font-black text-[#2b2b4f] dark:text-white">15</span>
+                      </div>
+                      <p className="text-[10px] text-slate-400 font-medium">Keep up progress!</p>
+                    </div>
+                    <div className="bg-white dark:bg-slate-800 rounded-[1.25rem] p-5 shadow-[0_2px_10px_rgba(0,0,0,0.02)] flex flex-col items-center justify-center text-center border border-slate-100 dark:border-slate-700/50">
+                      <p className="text-xs font-semibold text-slate-500 mb-4">Account Rating</p>
+                      <div className="w-16 h-16 rounded-full border-[3px] border-blue-500 flex items-center justify-center mb-3 shadow-[0_0_15px_rgba(59,130,246,0.2)]">
+                        <span className="text-xl font-black text-[#2b2b4f] dark:text-white">98%</span>
+                      </div>
+                      <p className="text-[10px] text-slate-400 font-medium">Excellent standing</p>
+                    </div>
+                    <div className="bg-white dark:bg-slate-800 rounded-[1.25rem] p-5 shadow-[0_2px_10px_rgba(0,0,0,0.02)] flex flex-col items-center justify-center text-center border border-slate-100 dark:border-slate-700/50">
+                      <p className="text-xs font-semibold text-slate-500 mb-4">Lab Sessions</p>
+                      <div className="w-16 h-16 rounded-full border-[3px] border-emerald-500 flex items-center justify-center mb-3 shadow-[0_0_15px_rgba(16,185,129,0.2)]">
+                        <span className="text-xl font-black text-[#2b2b4f] dark:text-white">8/8</span>
+                      </div>
+                      <p className="text-[10px] text-slate-400 font-medium">Required completed</p>
+                    </div>
+                  </div>
+                </section>
+
+                {/* Schedule & Calendar */}
+                <section>
+                  <div className="flex justify-between items-end mb-4">
+                    <h3 className="text-lg font-bold text-[#2b2b4f] dark:text-white">Schedule</h3>
+                  </div>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div className="bg-white dark:bg-slate-800 rounded-[1.25rem] p-6 shadow-[0_2px_10px_rgba(0,0,0,0.02)] flex flex-col border border-slate-100 dark:border-slate-700/50">
+                      <div className="flex justify-between items-center mb-4">
+                        <button onClick={handlePrevMonth} className="text-slate-400 hover:text-indigo-500 transition-colors"><svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg></button>
+                        <h4 className="font-bold text-[#2b2b4f] dark:text-white text-sm">{monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}</h4>
+                        <button onClick={handleNextMonth} className="text-slate-400 hover:text-indigo-500 transition-colors"><svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg></button>
+                      </div>
+                      <div className="grid grid-cols-7 text-center text-xs font-semibold text-slate-400 mb-2">
+                        <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+                      </div>
+                      <div className="grid grid-cols-7 text-center text-sm font-medium gap-y-2 gap-x-1 text-[#2b2b4f] dark:text-slate-200">
+                        {daysArray.map((day, index) => {
+                          if (day === null) return <div key={`empty-${index}`}></div>;
+                          const isToday = day === today.getDate() && currentDate.getMonth() === today.getMonth() && currentDate.getFullYear() === today.getFullYear();
+                          return (
+                            <div key={`day-${day}`} className={`flex items-center justify-center w-7 h-7 mx-auto rounded-full ${isToday ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/30' : 'hover:bg-slate-100 dark:hover:bg-slate-700/50 cursor-pointer transition-colors'}`}>
+                              {day}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col gap-3">
+                      <div className="bg-indigo-600 rounded-[1.25rem] p-4 text-white shadow-xl shadow-indigo-600/30 flex gap-4 items-center">
+                        <div className="w-12 text-center border-r border-indigo-400/30 pr-4 shrink-0">
+                          <div className="text-2xl font-black leading-none">07</div>
                         </div>
-                        {/* Stat Card 2 */}
-                        <div className="bg-white dark:bg-slate-800 rounded-[1.25rem] p-5 shadow-[0_2px_10px_rgba(0,0,0,0.02)] flex flex-col items-center justify-center text-center border border-slate-100 dark:border-slate-700/50">
-                           <p className="text-xs font-semibold text-slate-500 mb-4">Study Hours</p>
-                           <div className="w-16 h-16 rounded-full border-[3px] border-purple-500 flex items-center justify-center mb-3 shadow-[0_0_15px_rgba(168,85,247,0.2)]">
-                             <span className="text-xl font-black text-[#2b2b4f] dark:text-white">15</span>
-                           </div>
-                           <p className="text-[10px] text-slate-400 font-medium">Keep up progress!</p>
+                        <div className="flex-1">
+                          <h4 className="font-bold text-sm tracking-wide">Smart Lab F1205</h4>
+                          <p className="text-[10px] text-indigo-100 mt-1">2 hours reserved</p>
                         </div>
-                        {/* Stat Card 3 */}
-                        <div className="bg-white dark:bg-slate-800 rounded-[1.25rem] p-5 shadow-[0_2px_10px_rgba(0,0,0,0.02)] flex flex-col items-center justify-center text-center border border-slate-100 dark:border-slate-700/50">
-                           <p className="text-xs font-semibold text-slate-500 mb-4">Account Rating</p>
-                           <div className="w-16 h-16 rounded-full border-[3px] border-blue-500 flex items-center justify-center mb-3 shadow-[0_0_15px_rgba(59,130,246,0.2)]">
-                             <span className="text-xl font-black text-[#2b2b4f] dark:text-white">98%</span>
-                           </div>
-                           <p className="text-[10px] text-slate-400 font-medium">Excellent standing</p>
+                        <div className="text-sm font-black">10:00</div>
+                      </div>
+                      <div className="bg-white dark:bg-slate-800 rounded-[1.25rem] p-4 flex gap-4 items-center shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-100 dark:border-slate-700/50">
+                        <div className="w-12 text-center border-r border-slate-200 dark:border-slate-700 pr-4 shrink-0">
+                          <div className="text-2xl font-black text-[#2b2b4f] dark:text-white leading-none">12</div>
                         </div>
-                        {/* Stat Card 4 */}
-                        <div className="bg-white dark:bg-slate-800 rounded-[1.25rem] p-5 shadow-[0_2px_10px_rgba(0,0,0,0.02)] flex flex-col items-center justify-center text-center border border-slate-100 dark:border-slate-700/50">
-                           <p className="text-xs font-semibold text-slate-500 mb-4">Lab Sessions</p>
-                           <div className="w-16 h-16 rounded-full border-[3px] border-emerald-500 flex items-center justify-center mb-3 shadow-[0_0_15px_rgba(16,185,129,0.2)]">
-                             <span className="text-xl font-black text-[#2b2b4f] dark:text-white">8/8</span>
-                           </div>
-                           <p className="text-[10px] text-slate-400 font-medium">Required completed</p>
+                        <div className="flex-1">
+                          <h4 className="font-bold text-[#2b2b4f] dark:text-white text-sm tracking-wide">Meeting Room A405</h4>
+                          <p className="text-[10px] text-slate-400 mt-1">Group Project</p>
                         </div>
-                     </div>
-                  </section>
-  
-                  {/* Schedule & Calendar */}
-                  <section>
-                     <div className="flex justify-between items-end mb-4">
-                       <h3 className="text-lg font-bold text-[#2b2b4f] dark:text-white">Schedule</h3>
-                     </div>
-                     <div className="grid md:grid-cols-2 gap-4">
-                       {/* Calendar visual mock */}
-                       <div className="bg-white dark:bg-slate-800 rounded-[1.25rem] p-6 shadow-[0_2px_10px_rgba(0,0,0,0.02)] flex flex-col border border-slate-100 dark:border-slate-700/50">
-                           <div className="flex justify-between items-center mb-4">
-                              <button onClick={handlePrevMonth} className="text-slate-400 hover:text-indigo-500 transition-colors"><svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg></button>
-                              <h4 className="font-bold text-[#2b2b4f] dark:text-white text-sm">{monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}</h4>
-                              <button onClick={handleNextMonth} className="text-slate-400 hover:text-indigo-500 transition-colors"><svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg></button>
-                           </div>
-                           <div className="grid grid-cols-7 text-center text-xs font-semibold text-slate-400 mb-2">
-                              <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
-                           </div>
-                           <div className="grid grid-cols-7 text-center text-sm font-medium gap-y-2 gap-x-1 text-[#2b2b4f] dark:text-slate-200">
-                              {daysArray.map((day, index) => {
-                                if (day === null) return <div key={`empty-${index}`}></div>;
-                                const isToday = day === today.getDate() && currentDate.getMonth() === today.getMonth() && currentDate.getFullYear() === today.getFullYear();
-                                return (
-                                  <div key={`day-${day}`} className={`flex items-center justify-center w-7 h-7 mx-auto rounded-full ${isToday ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/30' : 'hover:bg-slate-100 dark:hover:bg-slate-700/50 cursor-pointer transition-colors'}`}>
-                                    {day}
-                                  </div>
-                                );
-                              })}
-                           </div>
+                        <div className="text-sm font-black text-slate-800 dark:text-slate-200">14:00</div>
+                      </div>
+                      <div className="bg-white dark:bg-slate-800 rounded-[1.25rem] p-4 flex gap-4 items-center shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-100 dark:border-slate-700/50">
+                        <div className="w-12 text-center border-r border-slate-200 dark:border-slate-700 pr-4 shrink-0">
+                          <div className="text-2xl font-black text-[#2b2b4f] dark:text-white leading-none">14</div>
                         </div>
-                       
-                       {/* Events list */}
-                       <div className="flex flex-col gap-3">
-                          <div className="bg-indigo-600 rounded-[1.25rem] p-4 text-white shadow-xl shadow-indigo-600/30 flex gap-4 items-center">
-                             <div className="w-12 text-center border-r border-indigo-400/30 pr-4 shrink-0">
-                               <div className="text-2xl font-black leading-none">07</div>
-                             </div>
-                             <div className="flex-1">
-                                <h4 className="font-bold text-sm tracking-wide">Smart Lab F1205</h4>
-                                <p className="text-[10px] text-indigo-100 mt-1">2 hours reserved</p>
-                             </div>
-                             <div className="text-sm font-black">10:00</div>
-                          </div>
-                          <div className="bg-white dark:bg-slate-800 rounded-[1.25rem] p-4 flex gap-4 items-center shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-100 dark:border-slate-700/50">
-                             <div className="w-12 text-center border-r border-slate-200 dark:border-slate-700 pr-4 shrink-0">
-                               <div className="text-2xl font-black text-[#2b2b4f] dark:text-white leading-none">12</div>
-                             </div>
-                             <div className="flex-1">
-                                <h4 className="font-bold text-[#2b2b4f] dark:text-white text-sm tracking-wide">Meeting Room A405</h4>
-                                <p className="text-[10px] text-slate-400 mt-1">Group Project</p>
-                             </div>
-                             <div className="text-sm font-black text-slate-800 dark:text-slate-200">14:00</div>
-                          </div>
-                          <div className="bg-white dark:bg-slate-800 rounded-[1.25rem] p-4 flex gap-4 items-center shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-100 dark:border-slate-700/50">
-                             <div className="w-12 text-center border-r border-slate-200 dark:border-slate-700 pr-4 shrink-0">
-                               <div className="text-2xl font-black text-[#2b2b4f] dark:text-white leading-none">14</div>
-                             </div>
-                             <div className="flex-1">
-                                <h4 className="font-bold text-[#2b2b4f] dark:text-white text-sm tracking-wide">Library Quiet Room</h4>
-                                <p className="text-[10px] text-slate-400 mt-1">Individual Study</p>
-                             </div>
-                             <div className="text-sm font-black text-slate-800 dark:text-slate-200">09:00</div>
-                          </div>
-                       </div>
-                     </div>
-                  </section>
-               </div>
-  
-               {/* Right Column */}
-               <div className="space-y-8">
-                  {/* Upcoming Events */}
-                  <section>
-                     <div className="flex justify-between items-end mb-4">
-                       <h3 className="text-lg font-bold text-[#2b2b4f] dark:text-white">Upcoming Events</h3>
-                       <button className="text-xs font-bold text-indigo-500 hover:text-indigo-600 transition-colors">View more</button>
-                     </div>
-                     <div className="bg-white dark:bg-slate-800 rounded-[1.25rem] p-5 shadow-[0_2px_10px_rgba(0,0,0,0.02)] space-y-4 border border-slate-100 dark:border-slate-700/50">
-                        <div className="flex items-center gap-4 bg-slate-50 dark:bg-slate-900/50 p-3 rounded-xl border border-slate-100 dark:border-slate-700/50">
-                           <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 shrink-0 shadow-md"></div>
-                           <div className="flex-1">
-                              <h4 className="font-bold text-sm text-[#2b2b4f] dark:text-white leading-tight">AI and Big Data Seminar</h4>
-                              <p className="text-[10px] text-slate-400 mt-1 flex items-center gap-2">
-                                 <span>08.03.2026</span> <span>18:00 - 20:00</span>
-                              </p>
-                           </div>
-                           <button className="text-slate-400 hover:text-indigo-500"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg></button>
+                        <div className="flex-1">
+                          <h4 className="font-bold text-[#2b2b4f] dark:text-white text-sm tracking-wide">Library Quiet Room</h4>
+                          <p className="text-[10px] text-slate-400 mt-1">Individual Study</p>
                         </div>
-                        <div className="flex items-center gap-4 bg-slate-50 dark:bg-slate-900/50 p-3 rounded-xl border border-slate-100 dark:border-slate-700/50">
-                           <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-900 to-slate-900 shrink-0 shadow-md"></div>
-                           <div className="flex-1">
-                              <h4 className="font-bold text-sm text-[#2b2b4f] dark:text-white leading-tight">Student Council Meetup</h4>
-                              <p className="text-[10px] text-slate-400 mt-1 flex items-center gap-2">
-                                 <span>17.03.2026</span> <span>10:00 - 16:00</span>
-                              </p>
-                           </div>
-                           <button className="text-slate-400 hover:text-indigo-500"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg></button>
-                        </div>
-                     </div>
-                  </section>
-  
-                  {/* Suggested Facilities */}
-                  <section>
-                     <div className="flex justify-between items-end mb-4">
-                       <h3 className="text-lg font-bold text-[#2b2b4f] dark:text-white">Top Facilities</h3>
-                       <button className="text-xs font-bold text-indigo-500 hover:text-indigo-600 transition-colors" onClick={() => navigate('/resources')}>Catalogue</button>
-                     </div>
-                     <div className="bg-white dark:bg-slate-800 rounded-[1.25rem] p-5 shadow-[0_2px_10px_rgba(0,0,0,0.02)] space-y-4 border border-slate-100 dark:border-slate-700/50">
-                        <div className="flex items-center gap-3">
-                           <div className="w-10 h-10 rounded-full bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 flex items-center justify-center shrink-0">🏛️</div>
-                           <div className="flex-1">
-                              <h4 className="font-bold text-sm text-[#2b2b4f] dark:text-white">Smart Classroom F1205</h4>
-                              <p className="text-[10px] text-slate-400 shrink-0">Available now</p>
-                           </div>
-                           <button className="shrink-0 w-8 h-8 rounded-full bg-indigo-50 dark:bg-indigo-900/30 text-indigo-500 flex items-center justify-center hover:bg-indigo-100 transition-colors">
-                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
-                           </button>
-                        </div>
-                        <div className="flex items-center gap-3">
-                           <div className="w-10 h-10 rounded-full bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 flex items-center justify-center shrink-0">📚</div>
-                           <div className="flex-1">
-                              <h4 className="font-bold text-sm text-[#2b2b4f] dark:text-white">Main Library Study Room</h4>
-                              <p className="text-[10px] text-slate-400 shrink-0">Waitlist open</p>
-                           </div>
-                           <button className="shrink-0 w-8 h-8 rounded-full bg-indigo-50 dark:bg-indigo-900/30 text-indigo-500 flex items-center justify-center hover:bg-indigo-100 transition-colors">
-                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
-                           </button>
-                        </div>
-                     </div>
-                  </section>
-               </div>
-             </div>
+                        <div className="text-sm font-black text-slate-800 dark:text-slate-200">09:00</div>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+              </div>
+
+              {/* Right Column */}
+              <div className="space-y-8">
+                <section>
+                  <div className="flex justify-between items-end mb-4">
+                    <h3 className="text-lg font-bold text-[#2b2b4f] dark:text-white">Upcoming Events</h3>
+                    <button className="text-xs font-bold text-indigo-500 hover:text-indigo-600 transition-colors">View more</button>
+                  </div>
+                  <div className="bg-white dark:bg-slate-800 rounded-[1.25rem] p-5 shadow-[0_2px_10px_rgba(0,0,0,0.02)] space-y-4 border border-slate-100 dark:border-slate-700/50">
+                    <div className="flex items-center gap-4 bg-slate-50 dark:bg-slate-900/50 p-3 rounded-xl border border-slate-100 dark:border-slate-700/50">
+                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 shrink-0 shadow-md"></div>
+                      <div className="flex-1">
+                        <h4 className="font-bold text-sm text-[#2b2b4f] dark:text-white leading-tight">AI and Big Data Seminar</h4>
+                        <p className="text-[10px] text-slate-400 mt-1 flex items-center gap-2">
+                          <span>08.03.2026</span> <span>18:00 - 20:00</span>
+                        </p>
+                      </div>
+                      <button className="text-slate-400 hover:text-indigo-500"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg></button>
+                    </div>
+                    <div className="flex items-center gap-4 bg-slate-50 dark:bg-slate-900/50 p-3 rounded-xl border border-slate-100 dark:border-slate-700/50">
+                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-900 to-slate-900 shrink-0 shadow-md"></div>
+                      <div className="flex-1">
+                        <h4 className="font-bold text-sm text-[#2b2b4f] dark:text-white leading-tight">Student Council Meetup</h4>
+                        <p className="text-[10px] text-slate-400 mt-1 flex items-center gap-2">
+                          <span>17.03.2026</span> <span>10:00 - 16:00</span>
+                        </p>
+                      </div>
+                      <button className="text-slate-400 hover:text-indigo-500"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg></button>
+                    </div>
+                  </div>
+                </section>
+
+                <section>
+                  <div className="flex justify-between items-end mb-4">
+                    <h3 className="text-lg font-bold text-[#2b2b4f] dark:text-white">Top Facilities</h3>
+                    <button className="text-xs font-bold text-indigo-500 hover:text-indigo-600 transition-colors" onClick={() => navigate('/resources')}>Catalogue</button>
+                  </div>
+                  <div className="bg-white dark:bg-slate-800 rounded-[1.25rem] p-5 shadow-[0_2px_10px_rgba(0,0,0,0.02)] space-y-4 border border-slate-100 dark:border-slate-700/50">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 flex items-center justify-center shrink-0">🏛️</div>
+                      <div className="flex-1">
+                        <h4 className="font-bold text-sm text-[#2b2b4f] dark:text-white">Smart Classroom F1205</h4>
+                        <p className="text-[10px] text-slate-400 shrink-0">Available now</p>
+                      </div>
+                      <button className="shrink-0 w-8 h-8 rounded-full bg-indigo-50 dark:bg-indigo-900/30 text-indigo-500 flex items-center justify-center hover:bg-indigo-100 transition-colors">
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                      </button>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 flex items-center justify-center shrink-0">📚</div>
+                      <div className="flex-1">
+                        <h4 className="font-bold text-sm text-[#2b2b4f] dark:text-white">Main Library Study Room</h4>
+                        <p className="text-[10px] text-slate-400 shrink-0">Waitlist open</p>
+                      </div>
+                      <button className="shrink-0 w-8 h-8 rounded-full bg-indigo-50 dark:bg-indigo-900/30 text-indigo-500 flex items-center justify-center hover:bg-indigo-100 transition-colors">
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                      </button>
+                    </div>
+                  </div>
+                </section>
+              </div>
+            </div>
+          )}
+
+          {/* TAB: MY TICKETS */}
+          {activeTab === 'myTickets' && (
+            <TicketList
+              userRole={user?.role || 'USER'}
+              onSelectTicket={handleSelectTicket}
+            />
+          )}
+
+          {/* TAB: REPORT INCIDENT */}
+          {activeTab === 'reportIncident' && (
+            <CreateTicket onTicketCreated={() => setActiveTab('myTickets')} />
+          )}
+
+          {/* TAB: TICKET DETAIL */}
+          {activeTab === 'ticketDetail' && selectedTicketId && (
+            <TicketDetail
+              ticketId={selectedTicketId}
+              userRole={user?.role || 'USER'}
+              userName={user?.firstName || 'User'}
+              onBack={handleBackToTickets}
+            />
           )}
 
           {/* TAB: PROFILE */}
           {activeTab === 'profile' && (
-             <div className="max-w-4xl mx-auto space-y-8 animate-fade-in-up">
-                {/* Profile Header */}
-                <div className="bg-white dark:bg-slate-800 rounded-[1.25rem] p-8 shadow-[0_2px_15px_rgba(0,0,0,0.02)] border border-slate-100 dark:border-slate-700/50 relative overflow-hidden">
-                   <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-r from-indigo-500 to-purple-600"></div>
-                   <div className="relative z-10 flex flex-col sm:flex-row items-center sm:items-end gap-6 mt-12 w-full text-center sm:text-left">
-                      <div className="w-32 h-32 rounded-full border-4 border-white dark:border-slate-800 bg-indigo-100 overflow-hidden shadow-xl shrink-0">
-                         <img src="https://images.unsplash.com/photo-1599566150163-29194dcaad36?auto=format&fit=crop&w=256&q=80" alt="Avatar" className="w-full h-full object-cover" />
-                      </div>
-                      <div className="flex-1 pb-2">
-                         <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{user?.firstName} {user?.lastName}</h2>
-                         <p className="text-indigo-600 dark:text-indigo-400 font-bold tracking-wide mt-1">{user?.role || 'Undergraduate Student'}</p>
-                         <p className="text-sm text-slate-500 dark:text-slate-400 mt-2 font-medium">{user?.email || 'student@spacexplore.edu'}</p>
-                      </div>
-                      <div className="pb-2">
-                         <button className="bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-500/20 font-bold py-2.5 px-6 rounded-xl transition-colors border border-indigo-100 dark:border-indigo-500/20 text-sm w-full sm:w-auto">
-                            Edit Avatar
-                         </button>
-                      </div>
-                   </div>
+            <div className="max-w-4xl mx-auto space-y-8 animate-fade-in-up">
+              <div className="bg-white dark:bg-slate-800 rounded-[1.25rem] p-8 shadow-[0_2px_15px_rgba(0,0,0,0.02)] border border-slate-100 dark:border-slate-700/50 relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-r from-indigo-500 to-purple-600"></div>
+                <div className="relative z-10 flex flex-col sm:flex-row items-center sm:items-end gap-6 mt-12 w-full text-center sm:text-left">
+                  <div className="w-32 h-32 rounded-full border-4 border-white dark:border-slate-800 bg-indigo-100 overflow-hidden shadow-xl shrink-0 group relative">
+                    <img src={user?.avatarUrl || "https://images.unsplash.com/photo-1599566150163-29194dcaad36?auto=format&fit=crop&w=256&q=80"} alt="Avatar" className="w-full h-full object-cover transition-transform group-hover:scale-110" />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer" onClick={() => setShowEditProfileModal(true)}>
+                      <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                    </div>
+                  </div>
+                  <div className="flex-1 pb-2">
+                    <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{user?.firstName}</h2>
+                    <p className="text-indigo-600 dark:text-indigo-400 font-bold tracking-wide mt-1">{user?.role || 'Undergraduate Student'}</p>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-2 font-medium">{user?.email}</p>
+                  </div>
+                  <div className="pb-2">
+                    <button 
+                      onClick={() => setShowEditProfileModal(true)}
+                      className="bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-500/20 font-bold py-2.5 px-6 rounded-xl transition-colors border border-indigo-100 dark:border-indigo-500/20 text-sm w-full sm:w-auto"
+                    >
+                      Update Profile
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="bg-white dark:bg-slate-800 rounded-[1.25rem] p-8 shadow-[0_2px_15px_rgba(0,0,0,0.02)] border border-slate-100 dark:border-slate-700/50">
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-6">Personal Details</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-1">Full Name</label>
+                      <p className="font-semibold text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-slate-900/50 px-4 py-3 rounded-xl border border-slate-100 dark:border-slate-800">{user?.firstName} {user?.lastName}</p>
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-1">Email Address</label>
+                      <p className="font-semibold text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-slate-900/50 px-4 py-3 rounded-xl border border-slate-100 dark:border-slate-800">{user?.email || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-1">Student ID / Reference</label>
+                      <p className="font-semibold text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-slate-900/50 px-4 py-3 rounded-xl border border-slate-100 dark:border-slate-800">{user?.studentId || 'Not set'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-1">Primary Campus</label>
+                      <p className="font-semibold text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-slate-900/50 px-4 py-3 rounded-xl border border-slate-100 dark:border-slate-800">Main Tech Campus Building A</p>
+                    </div>
+                  </div>
+                  <button 
+                    onClick={() => setShowEditProfileModal(true)}
+                    className="mt-6 text-sm font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 hover:bg-indigo-100 dark:hover:bg-indigo-500/20 transition-all w-full bg-indigo-50 dark:bg-indigo-500/10 py-3 rounded-xl border border-indigo-100 dark:border-indigo-500/20 shadow-sm"
+                  >
+                    Edit Personal & Academic Profile
+                  </button>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                   {/* Personal Info */}
-                   <div className="bg-white dark:bg-slate-800 rounded-[1.25rem] p-8 shadow-[0_2px_15px_rgba(0,0,0,0.02)] border border-slate-100 dark:border-slate-700/50">
-                      <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-6">Personal Details</h3>
-                      <div className="space-y-4">
-                         <div>
-                            <label className="block text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-1">Full Name</label>
-                            <p className="font-semibold text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-slate-900/50 px-4 py-3 rounded-xl border border-slate-100 dark:border-slate-800">{user?.firstName} {user?.lastName}</p>
-                         </div>
-                         <div>
-                            <label className="block text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-1">Email Address</label>
-                            <p className="font-semibold text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-slate-900/50 px-4 py-3 rounded-xl border border-slate-100 dark:border-slate-800">{user?.email || 'N/A'}</p>
-                         </div>
-                         <div>
-                            <label className="block text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-1">Student ID / Reference</label>
-                            <p className="font-semibold text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-slate-900/50 px-4 py-3 rounded-xl border border-slate-100 dark:border-slate-800">IT21${Math.floor(Math.random() * 90000) + 10000}</p>
-                         </div>
-                         <div>
-                            <label className="block text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-1">Primary Campus</label>
-                            <p className="font-semibold text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-slate-900/50 px-4 py-3 rounded-xl border border-slate-100 dark:border-slate-800">Main Tech Campus Building A</p>
-                         </div>
-                      </div>
-                      <button className="mt-6 text-sm font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 transition-colors w-full bg-indigo-50 dark:bg-indigo-500/10 py-3 rounded-xl border border-indigo-100 dark:border-indigo-500/20">
-                         Update Personal Information
-                      </button>
-                   </div>
-                   
-                   {/* Academic Mock */}
-                   <div className="bg-white dark:bg-slate-800 rounded-[1.25rem] p-8 shadow-[0_2px_15px_rgba(0,0,0,0.02)] border border-slate-100 dark:border-slate-700/50">
-                      <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-6">Academic Program</h3>
-                      
-                      <div className="mb-6 p-5 border border-purple-100 dark:border-purple-500/20 bg-purple-50 dark:bg-purple-500/5 rounded-xl">
-                         <h4 className="font-black text-purple-900 dark:text-purple-300">BSc (Hons) Software Engineering</h4>
-                         <p className="text-xs font-bold text-purple-600 dark:text-purple-400 mt-1 uppercase tracking-widest">Year 3 - Semester 2</p>
-                      </div>
+                <div className="bg-white dark:bg-slate-800 rounded-[1.25rem] p-8 shadow-[0_2px_15px_rgba(0,0,0,0.02)] border border-slate-100 dark:border-slate-700/50">
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-6">Academic Program</h3>
 
-                      <div className="space-y-5">
-                         <div>
-                            <div className="flex justify-between items-center mb-2">
-                               <p className="text-xs font-bold text-slate-600 dark:text-slate-300">Degree Progress</p>
-                               <span className="text-xs font-black text-indigo-600 dark:text-indigo-400">75%</span>
-                            </div>
-                            <div className="h-2 w-full bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
-                               <div className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 w-[75%] rounded-full shadow-[0_0_10px_rgba(99,102,241,0.5)]"></div>
-                            </div>
-                         </div>
-                         <div>
-                            <div className="flex justify-between items-center mb-2">
-                               <p className="text-xs font-bold text-slate-600 dark:text-slate-300">Lab Credits</p>
-                               <span className="text-xs font-black text-emerald-500">12 / 16</span>
-                            </div>
-                            <div className="h-2 w-full bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
-                               <div className="h-full bg-gradient-to-r from-emerald-400 to-teal-500 w-[75%] rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)]"></div>
-                            </div>
-                         </div>
+                  <div className="mb-6 p-5 border border-purple-100 dark:border-purple-500/20 bg-purple-50 dark:bg-purple-500/5 rounded-xl">
+                    <h4 className="font-black text-purple-900 dark:text-purple-300">{user?.academicProgram || 'BSc (Hons) Software Engineering'}</h4>
+                    <p className="text-xs font-bold text-purple-600 dark:text-purple-400 mt-1 uppercase tracking-widest">Year 3 - Semester 2</p>
+                  </div>
+
+                  <div className="space-y-5">
+                    <div>
+                      <div className="flex justify-between items-center mb-2">
+                        <p className="text-xs font-bold text-slate-600 dark:text-slate-300">Degree Progress</p>
+                        <span className="text-xs font-black text-indigo-600 dark:text-indigo-400">{user?.degreeProgress || 75}%</span>
                       </div>
-                      
-                      <div className="mt-8 border-t border-slate-100 dark:border-slate-700/50 pt-6">
-                         <h4 className="text-sm font-bold text-slate-700 dark:text-slate-200 mb-3">Enrolled Modules</h4>
-                         <div className="flex flex-wrap gap-2">
-                            <span className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest bg-slate-100 dark:bg-slate-700/50 text-slate-600 dark:text-slate-300 rounded-lg">PAF - IT3030</span>
-                            <span className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest bg-slate-100 dark:bg-slate-700/50 text-slate-600 dark:text-slate-300 rounded-lg">DS - IT3040</span>
-                            <span className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest bg-slate-100 dark:bg-slate-700/50 text-slate-600 dark:text-slate-300 rounded-lg">MLB - IT3050</span>
-                         </div>
+                      <div className="h-2 w-full bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                        <div className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full shadow-[0_0_10px_rgba(99,102,241,0.5)] transition-all duration-1000" style={{ width: `${user?.degreeProgress || 75}%` }}></div>
                       </div>
-                   </div>
+                    </div>
+                    <div>
+                      <div className="flex justify-between items-center mb-2">
+                        <p className="text-xs font-bold text-slate-600 dark:text-slate-300">Lab Credits</p>
+                        <span className="text-xs font-black text-emerald-500">{user?.labCredits || '12 / 16'}</span>
+                      </div>
+                      <div className="h-2 w-full bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                        <div className="h-full bg-gradient-to-r from-emerald-400 to-teal-500 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)] transition-all duration-1000" style={{ width: `${user?.labCredits ? (parseInt(user.labCredits.split('/')[0]) / parseInt(user.labCredits.split('/')[1]) * 100) || 75 : 75}%` }}></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-8 border-t border-slate-100 dark:border-slate-700/50 pt-6">
+                    <h4 className="text-sm font-bold text-slate-700 dark:text-slate-200 mb-3">Enrolled Modules</h4>
+                    <div className="flex flex-wrap gap-2">
+                      <span className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest bg-slate-100 dark:bg-slate-700/50 text-slate-600 dark:text-slate-300 rounded-lg">PAF - IT3030</span>
+                      <span className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest bg-slate-100 dark:bg-slate-700/50 text-slate-600 dark:text-slate-300 rounded-lg">DS - IT3040</span>
+                      <span className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest bg-slate-100 dark:bg-slate-700/50 text-slate-600 dark:text-slate-300 rounded-lg">MLB - IT3050</span>
+                    </div>
+                  </div>
                 </div>
-             </div>
+              </div>
+            </div>
           )}
 
           {/* TAB: SETTINGS */}
           {activeTab === 'settings' && (
-             <div className="max-w-4xl mx-auto space-y-8 animate-fade-in-up">
-                <div>
-                   <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Account Settings</h2>
-                   <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium">Manage your campus platform preferences and security.</p>
+            <div className="max-w-4xl mx-auto space-y-8 animate-fade-in-up">
+              <div>
+                <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Account Settings</h2>
+                <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium">Manage your campus platform preferences and security.</p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+
+                <div className="col-span-1">
+                  <div className="bg-white dark:bg-slate-800 rounded-[1.25rem] p-4 shadow-[0_2px_15px_rgba(0,0,0,0.02)] border border-slate-100 dark:border-slate-700/50 sticky top-4">
+                    <button className="w-full text-left px-4 py-3 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-bold rounded-xl mb-2 text-sm border-l-4 border-indigo-600">
+                      General Preferences
+                    </button>
+                    <button className="w-full text-left px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 text-slate-600 dark:text-slate-300 font-semibold rounded-xl mb-2 text-sm transition-colors border-l-4 border-transparent">
+                      Security & Login
+                    </button>
+                    <button className="w-full text-left px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 text-slate-600 dark:text-slate-300 font-semibold rounded-xl mb-2 text-sm transition-colors border-l-4 border-transparent">
+                      Notifications
+                    </button>
+                    <button className="w-full text-left px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 text-slate-600 dark:text-slate-300 font-semibold rounded-xl mb-2 text-sm transition-colors border-l-4 border-transparent">
+                      Billing & Plans
+                    </button>
+                  </div>
                 </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                   
-                   {/* Settings Nav */}
-                   <div className="col-span-1">
-                      <div className="bg-white dark:bg-slate-800 rounded-[1.25rem] p-4 shadow-[0_2px_15px_rgba(0,0,0,0.02)] border border-slate-100 dark:border-slate-700/50 sticky top-4">
-                         <button className="w-full text-left px-4 py-3 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-bold rounded-xl mb-2 text-sm border-l-4 border-indigo-600">
-                            General Preferences
-                         </button>
-                         <button className="w-full text-left px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 text-slate-600 dark:text-slate-300 font-semibold rounded-xl mb-2 text-sm transition-colors border-l-4 border-transparent">
-                            Security & Login
-                         </button>
-                         <button className="w-full text-left px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 text-slate-600 dark:text-slate-300 font-semibold rounded-xl mb-2 text-sm transition-colors border-l-4 border-transparent">
-                            Notifications
-                         </button>
-                         <button className="w-full text-left px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 text-slate-600 dark:text-slate-300 font-semibold rounded-xl mb-2 text-sm transition-colors border-l-4 border-transparent">
-                            Billing & Plans
-                         </button>
-                      </div>
-                   </div>
 
-                   {/* Settings Content */}
-                   <div className="col-span-1 md:col-span-2 space-y-8">
-                      
-                      {/* Theme Setting */}
-                      <div className="bg-white dark:bg-slate-800 rounded-[1.25rem] p-8 shadow-[0_2px_15px_rgba(0,0,0,0.02)] border border-slate-100 dark:border-slate-700/50">
-                         <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-6">Appearance</h3>
-                         <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-6">Customize how SpaceXplore looks on your device.</p>
-                         
-                         <div className="flex items-center justify-between p-5 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-800">
-                            <div>
-                               <h4 className="font-bold text-slate-800 dark:text-white">Global Theme</h4>
-                               <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-400 mt-1">Light / Dark toggle</p>
-                            </div>
-                            <div className="scale-125 origin-right">
-                               <ThemeToggle />
-                            </div>
-                         </div>
+                <div className="col-span-1 md:col-span-2 space-y-8">
+
+                  <div className="bg-white dark:bg-slate-800 rounded-[1.25rem] p-8 shadow-[0_2px_15px_rgba(0,0,0,0.02)] border border-slate-100 dark:border-slate-700/50">
+                    <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-6">Appearance</h3>
+                    <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-6">Customize how SpaceXplore looks on your device.</p>
+
+                    <div className="flex items-center justify-between p-5 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-800">
+                      <div>
+                        <h4 className="font-bold text-slate-800 dark:text-white">Global Theme</h4>
+                        <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-400 mt-1">Light / Dark toggle</p>
+                      </div>
+                      <div className="scale-125 origin-right">
+                        <ThemeToggle />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-white dark:bg-slate-800 rounded-[1.25rem] p-8 shadow-[0_2px_15px_rgba(0,0,0,0.02)] border border-slate-100 dark:border-slate-700/50">
+                    <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-6">Alerts & Notifications</h3>
+                    <div className="space-y-4">
+
+                      <div className="flex items-center justify-between p-4 border-b border-slate-100 dark:border-slate-700/50">
+                        <div>
+                          <h4 className="font-bold text-slate-800 dark:text-white text-sm">Booking Confirmations</h4>
+                          <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-1">Receive emails when your room booking is approved.</p>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input type="checkbox" value="" className="sr-only peer" defaultChecked />
+                          <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] right-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-indigo-600"></div>
+                        </label>
                       </div>
 
-                      {/* Notifications */}
-                      <div className="bg-white dark:bg-slate-800 rounded-[1.25rem] p-8 shadow-[0_2px_15px_rgba(0,0,0,0.02)] border border-slate-100 dark:border-slate-700/50">
-                         <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-6">Alerts & Notifications</h3>
-                         <div className="space-y-4">
-                            
-                            <div className="flex items-center justify-between p-4 border-b border-slate-100 dark:border-slate-700/50">
-                               <div>
-                                  <h4 className="font-bold text-slate-800 dark:text-white text-sm">Booking Confirmations</h4>
-                                  <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-1">Receive emails when your room booking is approved.</p>
-                               </div>
-                               <label className="relative inline-flex items-center cursor-pointer">
-                                  <input type="checkbox" value="" className="sr-only peer" defaultChecked />
-                                  <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] right-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-indigo-600"></div>
-                               </label>
-                            </div>
-
-                            <div className="flex items-center justify-between p-4 border-b border-slate-100 dark:border-slate-700/50">
-                               <div>
-                                  <h4 className="font-bold text-slate-800 dark:text-white text-sm">Maintenance Alerts</h4>
-                                  <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-1">Get notified if a facility you booked goes out of service.</p>
-                               </div>
-                               <label className="relative inline-flex items-center cursor-pointer">
-                                  <input type="checkbox" value="" className="sr-only peer" defaultChecked />
-                                  <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] right-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-indigo-600"></div>
-                               </label>
-                            </div>
-
-                            <div className="flex items-center justify-between p-4">
-                               <div>
-                                  <h4 className="font-bold text-slate-800 dark:text-white text-sm">Weekly Report</h4>
-                                  <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-1">Activity summary for your campus utilization.</p>
-                               </div>
-                               <label className="relative inline-flex items-center cursor-pointer">
-                                  <input type="checkbox" value="" className="sr-only peer" />
-                                  <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] right-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-indigo-600"></div>
-                               </label>
-                            </div>
-                         </div>
+                      <div className="flex items-center justify-between p-4 border-b border-slate-100 dark:border-slate-700/50">
+                        <div>
+                          <h4 className="font-bold text-slate-800 dark:text-white text-sm">Maintenance Alerts</h4>
+                          <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-1">Get notified if a facility you booked goes out of service.</p>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input type="checkbox" value="" className="sr-only peer" defaultChecked />
+                          <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] right-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-indigo-600"></div>
+                        </label>
                       </div>
 
-                   </div>
+                      <div className="flex items-center justify-between p-4">
+                        <div>
+                          <h4 className="font-bold text-slate-800 dark:text-white text-sm">Weekly Report</h4>
+                          <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-1">Activity summary for your campus utilization.</p>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input type="checkbox" value="" className="sr-only peer" />
+                          <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] right-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-indigo-600"></div>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+
                 </div>
-             </div>
+              </div>
+            </div>
           )}
 
           {/* TAB: BOOKINGS */}
@@ -647,12 +872,11 @@ function Dashboard() {
                           <h3 className="font-bold text-lg text-slate-800 dark:text-white">{booking.resourceName}</h3>
                           <p className="text-sm text-slate-600 dark:text-slate-400">{booking.purpose}</p>
                         </div>
-                        <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                          booking.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400' :
+                        <span className={`px-3 py-1 rounded-full text-xs font-bold ${booking.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400' :
                           booking.status === 'APPROVED' ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400' :
-                          booking.status === 'REJECTED' ? 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400' :
-                          'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400'
-                        }`}>
+                            booking.status === 'REJECTED' ? 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400' :
+                              'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400'
+                          }`}>
                           {booking.status}
                         </span>
                       </div>
@@ -695,6 +919,211 @@ function Dashboard() {
             </div>
           )}
 
+          {/* TAB: NOTIFICATIONS */}
+          {activeTab === 'notifications' && (
+            <div className="max-w-4xl mx-auto animate-fade-in-up">
+              <div className="bg-white dark:bg-slate-800 rounded-2xl p-8 shadow-sm border border-slate-100 dark:border-slate-700">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                  <h2 className="text-2xl font-black text-slate-900 dark:text-white">
+                    {notificationFilter === 'unread' ? 'Unread Notifications' : notificationFilter === 'read' ? 'Read Notifications' : 'All Notifications'}
+                  </h2>
+                  <div className="flex items-center gap-3 w-full sm:w-auto">
+                    <div className="flex bg-slate-100 dark:bg-slate-900/50 p-1 rounded-xl">
+                      <button onClick={() => setNotificationFilter('all')} className={`px-4 py-1.5 rounded-lg text-sm font-bold transition-all ${notificationFilter === 'all' ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}>All</button>
+                      <button onClick={() => setNotificationFilter('unread')} className={`px-4 py-1.5 rounded-lg text-sm font-bold transition-all ${notificationFilter === 'unread' ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}>Unread</button>
+                      <button onClick={() => setNotificationFilter('read')} className={`px-4 py-1.5 rounded-lg text-sm font-bold transition-all ${notificationFilter === 'read' ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}>Read</button>
+                    </div>
+                    {notifications.filter(n => !n.read).length > 0 && (
+                      <button onClick={markAllNotificationsAsRead} className="text-sm font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-900/30 dark:hover:bg-indigo-900/50 dark:text-indigo-400 py-2 px-4 rounded-xl transition-colors">
+                        Mark all as read
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  {notifications.filter(n => notificationFilter === 'all' ? true : notificationFilter === 'unread' ? !n.read : n.read).length === 0 ? (
+                    <div className="text-center py-12">
+                      <div className="w-16 h-16 mx-auto bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4 border border-slate-100 dark:border-slate-700">
+                        <svg className="w-8 h-8 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+                      </div>
+                      <h3 className="text-lg font-bold text-slate-700 dark:text-slate-300">
+                        {notificationFilter === 'unread' ? 'No unread notifications' : 'You\'re all caught up!'}
+                      </h3>
+                      <p className="text-sm text-slate-500 mt-1">There are no notifications to show in this view.</p>
+                    </div>
+                  ) : (
+                    notifications.filter(n => notificationFilter === 'all' ? true : notificationFilter === 'unread' ? !n.read : n.read).map(n => (
+                      <div 
+                        key={n.id}
+                        onClick={() => !n.read && markNotificationAsRead(n.id)}
+                        className={`p-5 rounded-xl border ${n.read ? 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700' : 'bg-indigo-50/50 dark:bg-indigo-900/20 border-indigo-100 dark:border-indigo-800 cursor-pointer hover:shadow-md transition-shadow'}`}
+                      >
+                        <div className="flex justify-between items-start">
+                          <div className="flex items-start gap-4">
+                            <div className={`mt-1 w-2 h-2 rounded-full shrink-0 ${n.read ? 'bg-slate-200 dark:bg-slate-700' : 'bg-indigo-600 dark:bg-indigo-400'}`}></div>
+                            <div>
+                              <h4 className={`text-base font-bold ${n.read ? 'text-slate-700 dark:text-slate-300' : 'text-indigo-900 dark:text-indigo-200'}`}>{n.title}</h4>
+                              <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">{n.message}</p>
+                              <p className="text-xs text-slate-400 mt-3 font-medium flex items-center gap-1">
+                                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                {formatTimeAgo(n.createdAt)}
+                              </p>
+                            </div>
+                          </div>
+                          <button onClick={(e) => deleteNotification(e, n.id)} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors">
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* PROFILE EDIT MODAL */}
+          {showEditProfileModal && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
+              <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm animate-fade-in" onClick={() => setShowEditProfileModal(false)}></div>
+              <div className="bg-white dark:bg-slate-800 w-full max-w-2xl rounded-[2rem] shadow-2xl relative z-10 overflow-hidden animate-zoom-in border border-white/20 dark:border-slate-700/50">
+                <div className="absolute top-0 left-0 w-full h-24 bg-gradient-to-r from-indigo-600 to-purple-600"></div>
+                
+                <div className="relative pt-8 px-8 pb-6 flex justify-between items-center">
+                  <h2 className="text-2xl font-black text-white drop-shadow-sm">Edit Your Profile</h2>
+                  <button onClick={() => setShowEditProfileModal(false)} className="bg-white/20 hover:bg-white/30 text-white p-2 rounded-full transition-colors">
+                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                  </button>
+                </div>
+
+                <form onSubmit={handleEditProfileSubmit} className="p-8 pt-4 space-y-6 overflow-y-auto max-h-[70vh]">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                      <h3 className="text-xs font-black uppercase tracking-[0.2em] text-slate-400 mb-2">Personal Information</h3>
+                      <div>
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5 ml-1">First Name</label>
+                        <input 
+                          type="text" 
+                          value={profileEditForm.firstName}
+                          onChange={(e) => setProfileEditForm({...profileEditForm, firstName: e.target.value})}
+                          className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-semibold focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                          placeholder="Shayamal"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5 ml-1">Last Name</label>
+                        <input 
+                          type="text" 
+                          value={profileEditForm.lastName}
+                          onChange={(e) => setProfileEditForm({...profileEditForm, lastName: e.target.value})}
+                          className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-semibold focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                          placeholder="Wishwabandara"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5 ml-1">Student ID</label>
+                        <input 
+                          type="text" 
+                          value={profileEditForm.studentId}
+                          onChange={(e) => setProfileEditForm({...profileEditForm, studentId: e.target.value})}
+                          className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-semibold focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                          placeholder="IT21$63778"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <h3 className="text-xs font-black uppercase tracking-[0.2em] text-slate-400 mb-2">Academic Profile</h3>
+                      <div>
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5 ml-1">Academic Program</label>
+                        <input 
+                          type="text" 
+                          value={profileEditForm.academicProgram}
+                          onChange={(e) => setProfileEditForm({...profileEditForm, academicProgram: e.target.value})}
+                          className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-semibold focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                          placeholder="BSc (Hons) Software Engineering"
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5 ml-1">Degree %</label>
+                          <input 
+                            type="number" 
+                            value={profileEditForm.degreeProgress}
+                            onChange={(e) => setProfileEditForm({...profileEditForm, degreeProgress: parseInt(e.target.value) || 0})}
+                            className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-semibold focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                            placeholder="75"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5 ml-1">Lab Credits</label>
+                          <input 
+                            type="text" 
+                            value={profileEditForm.labCredits}
+                            onChange={(e) => setProfileEditForm({...profileEditForm, labCredits: e.target.value})}
+                            className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-semibold focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                            placeholder="12 / 16"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-3 ml-1">Profile Photo</label>
+                        <div className="flex items-center gap-6">
+                          <div className="w-20 h-20 rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-900 border-2 border-dashed border-slate-200 dark:border-slate-700 relative group">
+                            {profileEditForm.avatarUrl ? (
+                              <img src={profileEditForm.avatarUrl} alt="Preview" className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-slate-400">
+                                <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                              </div>
+                            )}
+                            <label className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
+                              <input type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
+                              <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                            </label>
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-xs font-bold text-slate-700 dark:text-slate-300">Upload new avatar</p>
+                            <p className="text-[10px] text-slate-500 mt-1">JPG, PNG or GIF. Max size 2MB.</p>
+                            <button 
+                              type="button" 
+                              onClick={() => document.querySelector('input[type="file"]').click()}
+                              className="mt-2 text-[10px] font-black uppercase tracking-widest text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 transition-colors"
+                            >
+                              Choose File
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="pt-4 border-t border-slate-100 dark:border-slate-700 flex gap-4">
+                    <button 
+                      type="button" 
+                      onClick={() => setShowEditProfileModal(false)}
+                      className="flex-1 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 font-bold py-4 rounded-2xl transition-all"
+                    >
+                      Cancel
+                    </button>
+                    <button 
+                      type="submit" 
+                      disabled={isUpdatingProfile}
+                      className={`flex-[2] bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold py-4 rounded-2xl transition-all shadow-lg shadow-indigo-200 dark:shadow-none flex items-center justify-center gap-2 ${isUpdatingProfile ? 'opacity-70 cursor-not-allowed' : ''}`}
+                    >
+                      {isUpdatingProfile ? (
+                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                      ) : (
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                      )}
+                      {isUpdatingProfile ? 'Saving Changes...' : 'Save Profile Details'}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
         </div>
       </main>
     </div>
