@@ -51,6 +51,15 @@ public class TicketService {
         
         IncidentTicket savedTicket = ticketRepository.save(ticket);
         
+        // Notify the creator
+        userRepository.findByEmail(userEmail).ifPresent(user -> {
+            Notification userNotif = new Notification();
+            userNotif.setUserId(user.getId());
+            userNotif.setTitle("Incident Ticket Submitted");
+            userNotif.setMessage("Your incident ticket regarding " + savedTicket.getCategory() + " has been submitted and is pending verification.");
+            notificationRepository.save(userNotif);
+        });
+        
         // Save attachments (max 3)
         if (files != null && !files.isEmpty()) {
             int count = 0;
@@ -62,7 +71,15 @@ public class TicketService {
                 }
             }
         }
-        
+        List<User> adminsAndTechs = userRepository.findByRoleIn(List.of(Role.ADMIN, Role.SUPER_ADMIN, Role.MANAGER, Role.TECHNICIAN));
+        for (User staff : adminsAndTechs) {
+            Notification staffNotif = new Notification();
+            staffNotif.setUserId(staff.getId());
+            staffNotif.setTitle("New Incident Ticket");
+            staffNotif.setMessage("User " + userEmail + " reported a new incident regarding " + savedTicket.getCategory() + ".");
+            notificationRepository.save(staffNotif);
+        }
+
         return savedTicket;
     }
     
@@ -167,7 +184,17 @@ public class TicketService {
         if (ticket != null) {
             ticket.setResolutionNotes(notes);
             ticket.setUpdatedAt(LocalDateTime.now());
-            return ticketRepository.save(ticket);
+            IncidentTicket saved = ticketRepository.save(ticket);
+            
+            userRepository.findByEmail(ticket.getCreatedBy()).ifPresent(user -> {
+                Notification notif = new Notification();
+                notif.setUserId(user.getId());
+                notif.setTitle("Ticket Resolution Update");
+                notif.setMessage("Resolution notes were added to your ticket #" + ticket.getId() + ".");
+                notificationRepository.save(notif);
+            });
+            
+            return saved;
         }
         return null;
     }

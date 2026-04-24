@@ -12,6 +12,77 @@ function AdminDashboard() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [notificationFilter, setNotificationFilter] = useState('all');
+
+  useEffect(() => {
+    if (user?.id) fetchNotifications();
+  }, [user]);
+
+  const fetchNotifications = async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/notifications`, {
+        headers: { 'X-User-Id': user.id.toString() }
+      });
+      const data = await res.json();
+      setNotifications(data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const markNotificationAsRead = async (id) => {
+    try {
+      await fetch(`${API_BASE_URL}/api/notifications/${id}/read`, {
+        method: 'PUT',
+        headers: { 'X-User-Id': user.id.toString() }
+      });
+      setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const markAllNotificationsAsRead = async () => {
+    try {
+      await fetch(`${API_BASE_URL}/api/notifications/read-all`, {
+        method: 'PUT',
+        headers: { 'X-User-Id': user.id.toString() }
+      });
+      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const deleteNotification = async (e, id) => {
+    e.stopPropagation();
+    try {
+      await fetch(`${API_BASE_URL}/api/notifications/${id}`, {
+        method: 'DELETE',
+        headers: { 'X-User-Id': user.id.toString() }
+      });
+      setNotifications(prev => prev.filter(n => n.id !== id));
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const formatTimeAgo = (timestamp) => {
+    const seconds = Math.floor((Date.now() - timestamp) / 1000);
+    let interval = seconds / 31536000;
+    if (interval > 1) return Math.floor(interval) + " years ago";
+    interval = seconds / 2592000;
+    if (interval > 1) return Math.floor(interval) + " months ago";
+    interval = seconds / 86400;
+    if (interval > 1) return Math.floor(interval) + " days ago";
+    interval = seconds / 3600;
+    if (interval > 1) return Math.floor(interval) + " hours ago";
+    interval = seconds / 60;
+    if (interval > 1) return Math.floor(interval) + " mins ago";
+    return Math.floor(seconds) + " seconds ago";
+  };
 
   // Form state for adding/editing a room
   const [editingRoomId, setEditingRoomId] = useState(null);
@@ -132,6 +203,7 @@ function AdminDashboard() {
     { id: 'maintenance', name: 'Maintenance', icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg> },
     { id: 'bookings', name: 'Booking Requests', icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg> },
     { id: 'users', name: 'User Directory', icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg> },
+    { id: 'notifications', name: 'Notifications', icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg> },
   ];
 
   return (
@@ -189,11 +261,66 @@ function AdminDashboard() {
               {activeTab === 'maintenance' && 'Maintenance Hub'}
               {activeTab === 'bookings' && 'Booking Management'}
               {activeTab === 'users' && 'User Directory'}
+              {activeTab === 'notifications' && 'Notifications'}
             </h1>
           </div>
 
           <div className="flex items-center gap-6">
             <ThemeToggle />
+
+            <div className="relative">
+              <button
+                onClick={() => setShowNotifications(!showNotifications)}
+                className="relative p-2 text-slate-400 hover:text-indigo-600 transition-colors"
+              >
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+                {notifications.filter(n => !n.read).length > 0 && (
+                  <span className="absolute top-0 right-0 h-4 w-4 rounded-full bg-red-500 ring-2 ring-[#f4f7fe] dark:ring-slate-950 text-[10px] text-white flex items-center justify-center font-bold">
+                    {notifications.filter(n => !n.read).length}
+                  </span>
+                )}
+              </button>
+
+              {showNotifications && (
+                <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700 overflow-hidden z-50 animate-fade-in-up">
+                  <div className="p-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-900/50">
+                    <h3 className="font-bold text-slate-800 dark:text-white">Notifications</h3>
+                    <div className="flex gap-3">
+                      <button onClick={() => { setShowNotifications(false); setActiveTab('notifications'); }} className="text-xs text-indigo-500 font-semibold hover:text-indigo-600">View all</button>
+                      {notifications.filter(n => !n.read).length > 0 && (
+                        <button onClick={markAllNotificationsAsRead} className="text-xs text-indigo-500 font-semibold hover:text-indigo-600">Mark all read</button>
+                      )}
+                      <button onClick={() => setShowNotifications(false)} className="text-xs text-slate-500 font-semibold hover:text-slate-600">Close</button>
+                    </div>
+                  </div>
+                  <div className="max-h-80 overflow-y-auto">
+                    {notifications.length === 0 ? (
+                      <div className="p-6 text-center text-slate-500 dark:text-slate-400 text-sm">No notifications</div>
+                    ) : (
+                      notifications.map(n => (
+                        <div
+                          key={n.id}
+                          onClick={() => !n.read && markNotificationAsRead(n.id)}
+                          className={`p-4 border-b border-slate-100 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-700/30 cursor-pointer transition-colors block ${!n.read ? 'bg-indigo-50/50 dark:bg-indigo-900/10' : ''}`}
+                        >
+                          <div className="flex justify-between items-start mb-1">
+                            <p className={`text-sm font-bold ${!n.read ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-800 dark:text-white'}`}>{n.title}</p>
+                            <div className="flex items-center gap-2">
+                              {!n.read && <span className="h-2 w-2 rounded-full bg-indigo-500 shrink-0"></span>}
+                              <button onClick={(e) => deleteNotification(e, n.id)} className="text-slate-400 hover:text-red-500 transition-colors">
+                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                              </button>
+                            </div>
+                          </div>
+                          <p className="text-xs text-slate-500 dark:text-slate-400">{n.message}</p>
+                          <p className="text-[10px] text-slate-400 mt-2">{formatTimeAgo(n.createdAt)}</p>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
 
             <div className="flex items-center gap-3 ml-4 border-l border-slate-200 dark:border-slate-700 pl-6 cursor-pointer">
               <div className="hidden sm:block text-right">
@@ -357,6 +484,70 @@ function AdminDashboard() {
 
           {/* TAB: USERS - handled by dedicated UserManagementPanel */}
           {activeTab === 'users' && <UserManagementPanel />}
+
+          {/* TAB: NOTIFICATIONS */}
+          {activeTab === 'notifications' && (
+            <div className="max-w-4xl mx-auto animate-fade-in-up">
+              <div className="bg-white dark:bg-slate-800 rounded-2xl p-8 shadow-sm border border-slate-100 dark:border-slate-700">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                  <h2 className="text-2xl font-black text-slate-900 dark:text-white">
+                    {notificationFilter === 'unread' ? 'Unread Notifications' : notificationFilter === 'read' ? 'Read Notifications' : 'All Notifications'}
+                  </h2>
+                  <div className="flex items-center gap-3 w-full sm:w-auto">
+                    <div className="flex bg-slate-100 dark:bg-slate-900/50 p-1 rounded-xl">
+                      <button onClick={() => setNotificationFilter('all')} className={`px-4 py-1.5 rounded-lg text-sm font-bold transition-all ${notificationFilter === 'all' ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}>All</button>
+                      <button onClick={() => setNotificationFilter('unread')} className={`px-4 py-1.5 rounded-lg text-sm font-bold transition-all ${notificationFilter === 'unread' ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}>Unread</button>
+                      <button onClick={() => setNotificationFilter('read')} className={`px-4 py-1.5 rounded-lg text-sm font-bold transition-all ${notificationFilter === 'read' ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}>Read</button>
+                    </div>
+                    {notifications.filter(n => !n.read).length > 0 && (
+                      <button onClick={markAllNotificationsAsRead} className="text-sm font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-900/30 dark:hover:bg-indigo-900/50 dark:text-indigo-400 py-2 px-4 rounded-xl transition-colors">
+                        Mark all as read
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  {notifications.filter(n => notificationFilter === 'all' ? true : notificationFilter === 'unread' ? !n.read : n.read).length === 0 ? (
+                    <div className="text-center py-12">
+                      <div className="w-16 h-16 mx-auto bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4 border border-slate-100 dark:border-slate-700">
+                        <svg className="w-8 h-8 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+                      </div>
+                      <h3 className="text-lg font-bold text-slate-700 dark:text-slate-300">
+                        {notificationFilter === 'unread' ? 'No unread notifications' : 'You\'re all caught up!'}
+                      </h3>
+                      <p className="text-sm text-slate-500 mt-1">There are no notifications to show in this view.</p>
+                    </div>
+                  ) : (
+                    notifications.filter(n => notificationFilter === 'all' ? true : notificationFilter === 'unread' ? !n.read : n.read).map(n => (
+                      <div 
+                        key={n.id}
+                        onClick={() => !n.read && markNotificationAsRead(n.id)}
+                        className={`p-5 rounded-xl border ${n.read ? 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700' : 'bg-indigo-50/50 dark:bg-indigo-900/20 border-indigo-100 dark:border-indigo-800 cursor-pointer hover:shadow-md transition-shadow'}`}
+                      >
+                        <div className="flex justify-between items-start">
+                          <div className="flex items-start gap-4">
+                            <div className={`mt-1 w-2 h-2 rounded-full shrink-0 ${n.read ? 'bg-slate-200 dark:bg-slate-700' : 'bg-indigo-600 dark:bg-indigo-400'}`}></div>
+                            <div>
+                              <h4 className={`text-base font-bold ${n.read ? 'text-slate-700 dark:text-slate-300' : 'text-indigo-900 dark:text-indigo-200'}`}>{n.title}</h4>
+                              <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">{n.message}</p>
+                              <p className="text-xs text-slate-400 mt-3 font-medium flex items-center gap-1">
+                                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                {formatTimeAgo(n.createdAt)}
+                              </p>
+                            </div>
+                          </div>
+                          <button onClick={(e) => deleteNotification(e, n.id)} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors">
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
 
         </div>
       </main>

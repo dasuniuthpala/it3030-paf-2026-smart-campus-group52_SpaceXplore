@@ -16,6 +16,9 @@ import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import com.example.demo.repository.UserRepository;
+import com.example.demo.model.User;
+import com.example.demo.model.Role;
 
 @Service
 public class BookingService {
@@ -25,6 +28,9 @@ public class BookingService {
 
     @Autowired
     private NotificationRepository notificationRepository;
+
+    @Autowired
+    private UserRepository userRepository;
 
     public BookingResponse createBooking(BookingRequest payload, Long userId, String userEmail) {
         validateBookingPayload(payload);
@@ -45,6 +51,23 @@ public class BookingService {
         booking.setStatus(BookingStatus.PENDING);
 
         Booking saved = bookingRepository.save(booking);
+        
+        // Notify the requester
+        Notification userNotif = new Notification();
+        userNotif.setUserId(userId);
+        userNotif.setTitle("Booking Request Submitted");
+        userNotif.setMessage("Your booking request for " + payload.getResourceName() + " on " + payload.getDate() + " has been submitted and is pending approval.");
+        notificationRepository.save(userNotif);
+
+        List<User> admins = userRepository.findByRoleIn(List.of(Role.ADMIN, Role.SUPER_ADMIN, Role.MANAGER));
+        for (User admin : admins) {
+            Notification adminNotif = new Notification();
+            adminNotif.setUserId(admin.getId());
+            adminNotif.setTitle("New Booking Request");
+            adminNotif.setMessage("User " + userEmail + " requested a new booking for " + payload.getResourceName() + " on " + payload.getDate() + ".");
+            notificationRepository.save(adminNotif);
+        }
+
         return map(saved);
     }
 
@@ -174,7 +197,19 @@ public class BookingService {
         existing.setStatus(BookingStatus.CANCELLED);
         existing.setDecisionReason("Cancelled by user");
 
-        return map(bookingRepository.save(existing));
+        Booking saved = bookingRepository.save(existing);
+        
+        // Notify admins about cancellation
+        List<User> admins = userRepository.findByRoleIn(List.of(Role.ADMIN, Role.SUPER_ADMIN, Role.MANAGER));
+        for (User admin : admins) {
+            Notification adminNotif = new Notification();
+            adminNotif.setUserId(admin.getId());
+            adminNotif.setTitle("Booking Cancelled");
+            adminNotif.setMessage("User ID " + userId + " cancelled their booking for " + existing.getResourceName() + " on " + existing.getDate() + ".");
+            notificationRepository.save(adminNotif);
+        }
+
+        return map(saved);
     }
 
     public List<BookingResponse> getConflictingBookings() {
