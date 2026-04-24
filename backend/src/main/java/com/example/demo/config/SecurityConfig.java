@@ -43,7 +43,7 @@ public class SecurityConfig {
                 session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
             )
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/", "/error", "/api/public/**", "/api/auth/**", "/oauth2/**", "/login/oauth2/**", "/api/bookings/**").permitAll()
+                .requestMatchers("/", "/error", "/api/public/**", "/api/auth/**", "/oauth2/**", "/login/oauth2/**", "/api/bookings/**", "/api/notifications/**", "/api/tickets/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/resources/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/uploads/**").permitAll()
                 .requestMatchers("/api/admin/**").hasAnyRole("ADMIN", "SUPER_ADMIN")

@@ -3,6 +3,7 @@ package com.example.demo.service;
 import com.example.demo.dto.*;
 import com.example.demo.model.*;
 import com.example.demo.repository.*;
+import com.example.demo.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -30,6 +31,12 @@ public class TicketService {
     
     @Autowired
     private AttachmentRepository attachmentRepository;
+    
+    @Autowired
+    private NotificationRepository notificationRepository;
+    
+    @Autowired
+    private UserRepository userRepository;
     
     @Value("${file.upload-dir:uploads/}")
     private String uploadDir;
@@ -113,7 +120,17 @@ public class TicketService {
                 ticket.setResolutionNotes(reason);
             }
             ticket.setUpdatedAt(LocalDateTime.now());
-            return ticketRepository.save(ticket);
+            IncidentTicket saved = ticketRepository.save(ticket);
+            
+            userRepository.findByEmail(ticket.getCreatedBy()).ifPresent(user -> {
+                Notification notif = new Notification();
+                notif.setUserId(user.getId());
+                notif.setTitle("Ticket Status Update");
+                notif.setMessage("Your ticket #" + ticket.getId() + " status was changed to " + newStatus);
+                notificationRepository.save(notif);
+            });
+            
+            return saved;
         }
         return null;
     }
@@ -128,7 +145,17 @@ public class TicketService {
                 ticket.setStatus(TicketStatus.IN_PROGRESS);
             }
             ticket.setUpdatedAt(LocalDateTime.now());
-            return ticketRepository.save(ticket);
+            IncidentTicket saved = ticketRepository.save(ticket);
+            
+            userRepository.findByEmail(ticket.getCreatedBy()).ifPresent(user -> {
+                Notification notif = new Notification();
+                notif.setUserId(user.getId());
+                notif.setTitle("Ticket Verified & Assigned");
+                notif.setMessage("Your ticket #" + ticket.getId() + " has been verified and assigned to " + technicianName + ". Status is now " + saved.getStatus().name() + ".");
+                notificationRepository.save(notif);
+            });
+            
+            return saved;
         }
         return null;
     }
@@ -157,7 +184,19 @@ public class TicketService {
             comment.setAuthorRole(authorRole);
             comment.setCreatedAt(LocalDateTime.now());
             comment.setUpdatedAt(LocalDateTime.now());
-            return commentRepository.save(comment);
+            TicketComment saved = commentRepository.save(comment);
+            
+            if (!ticket.getCreatedBy().equals(author)) {
+                userRepository.findByEmail(ticket.getCreatedBy()).ifPresent(user -> {
+                    Notification notif = new Notification();
+                    notif.setUserId(user.getId());
+                    notif.setTitle("New Ticket Comment");
+                    notif.setMessage("A new comment was added to your ticket #" + ticket.getId() + " by " + author);
+                    notificationRepository.save(notif);
+                });
+            }
+            
+            return saved;
         }
         return null;
     }
