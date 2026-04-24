@@ -66,6 +66,13 @@ public class BookingService {
         return existing.stream().anyMatch(b -> isOverlap(b.getStartTime(), b.getEndTime(), startTime, endTime));
     }
 
+    private boolean hasConflictExcluding(String resourceName, LocalDate date, LocalTime startTime, LocalTime endTime, Long excludeBookingId) {
+        List<Booking> existing = bookingRepository.findByResourceNameAndDateAndStatusIn(resourceName, date, List.of(BookingStatus.PENDING, BookingStatus.APPROVED));
+        return existing.stream()
+                .filter(b -> !b.getId().equals(excludeBookingId))
+                .anyMatch(b -> isOverlap(b.getStartTime(), b.getEndTime(), startTime, endTime));
+    }
+
     private boolean isOverlap(LocalTime existingStart, LocalTime existingEnd, LocalTime newStart, LocalTime newEnd) {
         return newStart.isBefore(existingEnd) && existingStart.isBefore(newEnd);
     }
@@ -95,7 +102,7 @@ public class BookingService {
             throw new RuntimeException("Only pending bookings can be approved");
         }
 
-        if (hasConflict(existing.getResourceName(), existing.getDate(), existing.getStartTime(), existing.getEndTime())) {
+        if (hasConflictExcluding(existing.getResourceName(), existing.getDate(), existing.getStartTime(), existing.getEndTime(), bookingId)) {
             throw new RuntimeException("Booking cannot be approved due to conflict with other approved bookings.");
         }
 
@@ -137,6 +144,35 @@ public class BookingService {
         return map(bookingRepository.save(existing));
     }
 
+    public List<BookingResponse> getConflictingBookings() {
+        List<Booking> allBookings = bookingRepository.findAll();
+        
+        // Filter out cancelled bookings
+        List<Booking> activeBookings = allBookings.stream()
+                .filter(b -> !b.getStatus().name().equals("CANCELLED"))
+                .collect(Collectors.toList());
+        
+        List<BookingResponse> conflicts = new java.util.ArrayList<>();
+        
+        // For each booking, check if there are other bookings from different users with the same resource, date, and overlapping times
+        for (Booking booking : activeBookings) {
+            List<Booking> potentialConflicts = activeBookings.stream()
+                    .filter(b -> !b.getId().equals(booking.getId())) // Different booking
+                    .filter(b -> !b.getRequestedByUserId().equals(booking.getRequestedByUserId())) // Different user
+                    .filter(b -> b.getResourceName().equals(booking.getResourceName())) // Same resource
+                    .filter(b -> b.getDate().equals(booking.getDate())) // Same date
+                    .filter(b -> isOverlap(b.getStartTime(), b.getEndTime(), booking.getStartTime(), booking.getEndTime())) // Overlapping time
+                    .collect(Collectors.toList());
+            
+            // If there are conflicts, add this booking to the result (avoid duplicates by checking if it's not already added)
+            if (!potentialConflicts.isEmpty() && !conflicts.stream().anyMatch(c -> c.getId().equals(booking.getId()))) {
+                conflicts.add(map(booking));
+            }
+        }
+        
+        return conflicts;
+    }
+
     private BookingResponse map(Booking booking) {
         return new BookingResponse(
                 booking.getId(),
@@ -149,7 +185,8 @@ public class BookingService {
                 booking.getRequestedByUserId(),
                 booking.getRequestedByEmail(),
                 booking.getStatus(),
-                booking.getDecisionReason()
+                booking.getDecisionReason(),
+                booking.getCreatedAt()
         );
     }
 }

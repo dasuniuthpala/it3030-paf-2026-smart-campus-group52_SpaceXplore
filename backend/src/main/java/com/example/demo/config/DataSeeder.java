@@ -49,6 +49,19 @@ public class DataSeeder {
                 }
             }
 
+            // Seed default Technician account
+            String techEmail = "technician@spacexplore.local";
+            if (userRepository.findByEmail(techEmail).isEmpty()) {
+                User tech = new User();
+                tech.setFirstName("Tech");
+                tech.setLastName("Nician");
+                tech.setEmail(techEmail);
+                tech.setPassword(passwordEncoder.encode("tech123"));
+                tech.setRole(Role.TECHNICIAN);
+                userRepository.save(tech);
+                System.out.println("Default Technician created: " + techEmail);
+            }
+
             // Seed Resources only when the table is available.
             try {
                 if (resourceRepository.count() == 0) {
