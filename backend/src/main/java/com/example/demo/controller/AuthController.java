@@ -94,8 +94,35 @@ public class AuthController {
                     res.setEmail(user.getEmail());
                     res.setRole(user.getRole());
                     res.setToken("session");
+                    res.setStudentId(user.getStudentId());
+                    res.setAcademicProgram(user.getAcademicProgram());
+                    res.setDegreeProgress(user.getDegreeProgress());
+                    res.setLabCredits(user.getLabCredits());
+                    res.setAvatarUrl(user.getAvatarUrl());
                     return ResponseEntity.ok(res);
                 })
                 .orElse(ResponseEntity.status(401).build());
+    }
+
+    @PutMapping("/update-profile")
+    public ResponseEntity<?> updateProfile(@RequestBody com.example.demo.dto.ProfileUpdateRequest request) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated() || auth.getPrincipal().equals("anonymousUser")) {
+            return ResponseEntity.status(401).build();
+        }
+
+        String email = auth.getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        try {
+            UserResponse response = authService.updateProfile(user.getId(), request);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            e.printStackTrace(); // Log the actual error
+            Map<String, String> error = new HashMap<>();
+            error.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(error);
+        }
     }
 }

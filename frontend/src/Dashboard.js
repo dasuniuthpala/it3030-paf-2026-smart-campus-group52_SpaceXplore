@@ -17,6 +17,17 @@ function Dashboard() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [notificationFilter, setNotificationFilter] = useState('all');
+  const [showEditProfileModal, setShowEditProfileModal] = useState(false);
+  const [profileEditForm, setProfileEditForm] = useState({
+    firstName: '',
+    lastName: '',
+    studentId: '',
+    academicProgram: '',
+    degreeProgress: 0,
+    labCredits: '',
+    avatarUrl: ''
+  });
+  const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
 
   // Calendar State
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -48,6 +59,15 @@ function Dashboard() {
       return;
     }
     setUser(parsed);
+    setProfileEditForm({
+      firstName: parsed.firstName || '',
+      lastName: parsed.lastName || '',
+      studentId: parsed.studentId || '',
+      academicProgram: parsed.academicProgram || '',
+      degreeProgress: parsed.degreeProgress || 0,
+      labCredits: parsed.labCredits || '',
+      avatarUrl: parsed.avatarUrl || ''
+    });
   }, [navigate]);
 
   const fetchBookings = useCallback(async () => {
@@ -206,8 +226,56 @@ function Dashboard() {
 
   const handleLogout = () => {
     localStorage.removeItem('user');
-    localStorage.removeItem('token');
     navigate('/login');
+  };
+
+  const handleAvatarChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        setError('Image size should be less than 2MB');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProfileEditForm({ ...profileEditForm, avatarUrl: reader.result });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleEditProfileSubmit = async (e) => {
+    e.preventDefault();
+    setIsUpdatingProfile(true);
+    setError('');
+    setMessage('');
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/auth/update-profile`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-User-Id': user.id.toString()
+        },
+        credentials: 'include',
+        body: JSON.stringify(profileEditForm)
+      });
+
+      if (res.ok) {
+        const updatedUser = await res.json();
+        setUser(updatedUser);
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+        setShowEditProfileModal(false);
+        setMessage('Profile updated successfully!');
+      } else {
+        const errData = await res.json();
+        setError(errData.message || 'Failed to update profile');
+      }
+    } catch (err) {
+      setError('Connection error. Please try again.');
+    } finally {
+      setIsUpdatingProfile(false);
+    }
   };
 
   const menuItems = [
@@ -373,7 +441,7 @@ function Dashboard() {
 
             <div className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => setActiveTab('profile')}>
               <div className="w-10 h-10 rounded-full bg-indigo-100 overflow-hidden border-2 border-white shadow-sm dark:border-slate-800">
-                <img src="https://images.unsplash.com/photo-1599566150163-29194dcaad36?auto=format&fit=crop&w=64&q=80" alt="Avatar" className="w-full h-full object-cover" />
+                <img src={user?.avatarUrl || "https://images.unsplash.com/photo-1599566150163-29194dcaad36?auto=format&fit=crop&w=64&q=80"} alt="Avatar" className="w-full h-full object-cover" />
               </div>
               <div className="hidden sm:block text-right">
                 <p className="text-sm font-bold text-[#2b2b4f] dark:text-white leading-none">{user?.firstName?.split(' ')[0]}</p>
@@ -584,17 +652,23 @@ function Dashboard() {
               <div className="bg-white dark:bg-slate-800 rounded-[1.25rem] p-8 shadow-[0_2px_15px_rgba(0,0,0,0.02)] border border-slate-100 dark:border-slate-700/50 relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-r from-indigo-500 to-purple-600"></div>
                 <div className="relative z-10 flex flex-col sm:flex-row items-center sm:items-end gap-6 mt-12 w-full text-center sm:text-left">
-                  <div className="w-32 h-32 rounded-full border-4 border-white dark:border-slate-800 bg-indigo-100 overflow-hidden shadow-xl shrink-0">
-                    <img src="https://images.unsplash.com/photo-1599566150163-29194dcaad36?auto=format&fit=crop&w=256&q=80" alt="Avatar" className="w-full h-full object-cover" />
+                  <div className="w-32 h-32 rounded-full border-4 border-white dark:border-slate-800 bg-indigo-100 overflow-hidden shadow-xl shrink-0 group relative">
+                    <img src={user?.avatarUrl || "https://images.unsplash.com/photo-1599566150163-29194dcaad36?auto=format&fit=crop&w=256&q=80"} alt="Avatar" className="w-full h-full object-cover transition-transform group-hover:scale-110" />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer" onClick={() => setShowEditProfileModal(true)}>
+                      <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                    </div>
                   </div>
                   <div className="flex-1 pb-2">
-                    <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{user?.firstName?.split(' ')[0]}</h2>
+                    <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{user?.firstName}</h2>
                     <p className="text-indigo-600 dark:text-indigo-400 font-bold tracking-wide mt-1">{user?.role || 'Undergraduate Student'}</p>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-2 font-medium">{user?.email || 'student@spacexplore.edu'}</p>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-2 font-medium">{user?.email}</p>
                   </div>
                   <div className="pb-2">
-                    <button className="bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-500/20 font-bold py-2.5 px-6 rounded-xl transition-colors border border-indigo-100 dark:border-indigo-500/20 text-sm w-full sm:w-auto">
-                      Edit Avatar
+                    <button 
+                      onClick={() => setShowEditProfileModal(true)}
+                      className="bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-500/20 font-bold py-2.5 px-6 rounded-xl transition-colors border border-indigo-100 dark:border-indigo-500/20 text-sm w-full sm:w-auto"
+                    >
+                      Update Profile
                     </button>
                   </div>
                 </div>
@@ -614,15 +688,18 @@ function Dashboard() {
                     </div>
                     <div>
                       <label className="block text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-1">Student ID / Reference</label>
-                      <p className="font-semibold text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-slate-900/50 px-4 py-3 rounded-xl border border-slate-100 dark:border-slate-800">IT21${Math.floor(Math.random() * 90000) + 10000}</p>
+                      <p className="font-semibold text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-slate-900/50 px-4 py-3 rounded-xl border border-slate-100 dark:border-slate-800">{user?.studentId || 'Not set'}</p>
                     </div>
                     <div>
                       <label className="block text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-1">Primary Campus</label>
                       <p className="font-semibold text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-slate-900/50 px-4 py-3 rounded-xl border border-slate-100 dark:border-slate-800">Main Tech Campus Building A</p>
                     </div>
                   </div>
-                  <button className="mt-6 text-sm font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 transition-colors w-full bg-indigo-50 dark:bg-indigo-500/10 py-3 rounded-xl border border-indigo-100 dark:border-indigo-500/20">
-                    Update Personal Information
+                  <button 
+                    onClick={() => setShowEditProfileModal(true)}
+                    className="mt-6 text-sm font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 hover:bg-indigo-100 dark:hover:bg-indigo-500/20 transition-all w-full bg-indigo-50 dark:bg-indigo-500/10 py-3 rounded-xl border border-indigo-100 dark:border-indigo-500/20 shadow-sm"
+                  >
+                    Edit Personal & Academic Profile
                   </button>
                 </div>
 
@@ -630,7 +707,7 @@ function Dashboard() {
                   <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-6">Academic Program</h3>
 
                   <div className="mb-6 p-5 border border-purple-100 dark:border-purple-500/20 bg-purple-50 dark:bg-purple-500/5 rounded-xl">
-                    <h4 className="font-black text-purple-900 dark:text-purple-300">BSc (Hons) Software Engineering</h4>
+                    <h4 className="font-black text-purple-900 dark:text-purple-300">{user?.academicProgram || 'BSc (Hons) Software Engineering'}</h4>
                     <p className="text-xs font-bold text-purple-600 dark:text-purple-400 mt-1 uppercase tracking-widest">Year 3 - Semester 2</p>
                   </div>
 
@@ -638,19 +715,19 @@ function Dashboard() {
                     <div>
                       <div className="flex justify-between items-center mb-2">
                         <p className="text-xs font-bold text-slate-600 dark:text-slate-300">Degree Progress</p>
-                        <span className="text-xs font-black text-indigo-600 dark:text-indigo-400">75%</span>
+                        <span className="text-xs font-black text-indigo-600 dark:text-indigo-400">{user?.degreeProgress || 75}%</span>
                       </div>
                       <div className="h-2 w-full bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
-                        <div className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 w-[75%] rounded-full shadow-[0_0_10px_rgba(99,102,241,0.5)]"></div>
+                        <div className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full shadow-[0_0_10px_rgba(99,102,241,0.5)] transition-all duration-1000" style={{ width: `${user?.degreeProgress || 75}%` }}></div>
                       </div>
                     </div>
                     <div>
                       <div className="flex justify-between items-center mb-2">
                         <p className="text-xs font-bold text-slate-600 dark:text-slate-300">Lab Credits</p>
-                        <span className="text-xs font-black text-emerald-500">12 / 16</span>
+                        <span className="text-xs font-black text-emerald-500">{user?.labCredits || '12 / 16'}</span>
                       </div>
                       <div className="h-2 w-full bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
-                        <div className="h-full bg-gradient-to-r from-emerald-400 to-teal-500 w-[75%] rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)]"></div>
+                        <div className="h-full bg-gradient-to-r from-emerald-400 to-teal-500 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)] transition-all duration-1000" style={{ width: `${user?.labCredits ? (parseInt(user.labCredits.split('/')[0]) / parseInt(user.labCredits.split('/')[1]) * 100) || 75 : 75}%` }}></div>
                       </div>
                     </div>
                   </div>
@@ -906,6 +983,147 @@ function Dashboard() {
             </div>
           )}
 
+          {/* PROFILE EDIT MODAL */}
+          {showEditProfileModal && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
+              <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm animate-fade-in" onClick={() => setShowEditProfileModal(false)}></div>
+              <div className="bg-white dark:bg-slate-800 w-full max-w-2xl rounded-[2rem] shadow-2xl relative z-10 overflow-hidden animate-zoom-in border border-white/20 dark:border-slate-700/50">
+                <div className="absolute top-0 left-0 w-full h-24 bg-gradient-to-r from-indigo-600 to-purple-600"></div>
+                
+                <div className="relative pt-8 px-8 pb-6 flex justify-between items-center">
+                  <h2 className="text-2xl font-black text-white drop-shadow-sm">Edit Your Profile</h2>
+                  <button onClick={() => setShowEditProfileModal(false)} className="bg-white/20 hover:bg-white/30 text-white p-2 rounded-full transition-colors">
+                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                  </button>
+                </div>
+
+                <form onSubmit={handleEditProfileSubmit} className="p-8 pt-4 space-y-6 overflow-y-auto max-h-[70vh]">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                      <h3 className="text-xs font-black uppercase tracking-[0.2em] text-slate-400 mb-2">Personal Information</h3>
+                      <div>
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5 ml-1">First Name</label>
+                        <input 
+                          type="text" 
+                          value={profileEditForm.firstName}
+                          onChange={(e) => setProfileEditForm({...profileEditForm, firstName: e.target.value})}
+                          className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-semibold focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                          placeholder="Shayamal"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5 ml-1">Last Name</label>
+                        <input 
+                          type="text" 
+                          value={profileEditForm.lastName}
+                          onChange={(e) => setProfileEditForm({...profileEditForm, lastName: e.target.value})}
+                          className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-semibold focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                          placeholder="Wishwabandara"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5 ml-1">Student ID</label>
+                        <input 
+                          type="text" 
+                          value={profileEditForm.studentId}
+                          onChange={(e) => setProfileEditForm({...profileEditForm, studentId: e.target.value})}
+                          className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-semibold focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                          placeholder="IT21$63778"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <h3 className="text-xs font-black uppercase tracking-[0.2em] text-slate-400 mb-2">Academic Profile</h3>
+                      <div>
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5 ml-1">Academic Program</label>
+                        <input 
+                          type="text" 
+                          value={profileEditForm.academicProgram}
+                          onChange={(e) => setProfileEditForm({...profileEditForm, academicProgram: e.target.value})}
+                          className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-semibold focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                          placeholder="BSc (Hons) Software Engineering"
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5 ml-1">Degree %</label>
+                          <input 
+                            type="number" 
+                            value={profileEditForm.degreeProgress}
+                            onChange={(e) => setProfileEditForm({...profileEditForm, degreeProgress: parseInt(e.target.value) || 0})}
+                            className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-semibold focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                            placeholder="75"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5 ml-1">Lab Credits</label>
+                          <input 
+                            type="text" 
+                            value={profileEditForm.labCredits}
+                            onChange={(e) => setProfileEditForm({...profileEditForm, labCredits: e.target.value})}
+                            className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-semibold focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                            placeholder="12 / 16"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-3 ml-1">Profile Photo</label>
+                        <div className="flex items-center gap-6">
+                          <div className="w-20 h-20 rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-900 border-2 border-dashed border-slate-200 dark:border-slate-700 relative group">
+                            {profileEditForm.avatarUrl ? (
+                              <img src={profileEditForm.avatarUrl} alt="Preview" className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-slate-400">
+                                <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                              </div>
+                            )}
+                            <label className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
+                              <input type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
+                              <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                            </label>
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-xs font-bold text-slate-700 dark:text-slate-300">Upload new avatar</p>
+                            <p className="text-[10px] text-slate-500 mt-1">JPG, PNG or GIF. Max size 2MB.</p>
+                            <button 
+                              type="button" 
+                              onClick={() => document.querySelector('input[type="file"]').click()}
+                              className="mt-2 text-[10px] font-black uppercase tracking-widest text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 transition-colors"
+                            >
+                              Choose File
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="pt-4 border-t border-slate-100 dark:border-slate-700 flex gap-4">
+                    <button 
+                      type="button" 
+                      onClick={() => setShowEditProfileModal(false)}
+                      className="flex-1 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 font-bold py-4 rounded-2xl transition-all"
+                    >
+                      Cancel
+                    </button>
+                    <button 
+                      type="submit" 
+                      disabled={isUpdatingProfile}
+                      className={`flex-[2] bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold py-4 rounded-2xl transition-all shadow-lg shadow-indigo-200 dark:shadow-none flex items-center justify-center gap-2 ${isUpdatingProfile ? 'opacity-70 cursor-not-allowed' : ''}`}
+                    >
+                      {isUpdatingProfile ? (
+                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                      ) : (
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                      )}
+                      {isUpdatingProfile ? 'Saving Changes...' : 'Save Profile Details'}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
         </div>
       </main>
     </div>
