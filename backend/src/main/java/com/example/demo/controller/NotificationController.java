@@ -61,4 +61,19 @@ public class NotificationController {
         notificationRepository.saveAll(unread);
         return ResponseEntity.ok().build();
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteNotification(@PathVariable Long id, @RequestHeader("X-User-Id") Long userId) {
+        Optional<Notification> notifOpt = notificationRepository.findById(id);
+        if (notifOpt.isPresent()) {
+            Notification notif = notifOpt.get();
+            if (notif.getUserId().equals(userId)) {
+                notificationRepository.delete(notif);
+                return ResponseEntity.ok().build();
+            } else {
+                return ResponseEntity.status(403).body("Not authorized to delete this notification");
+            }
+        }
+        return ResponseEntity.notFound().build();
+    }
 }
